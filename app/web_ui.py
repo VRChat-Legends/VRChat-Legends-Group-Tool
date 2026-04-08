@@ -2063,6 +2063,12 @@ def start_web_ui():
     port = 5555
     url = f"http://127.0.0.1:{port}"
 
+    # When launched from Electron, skip pywebview – Electron provides the window.
+    if os.environ.get("ELECTRON_MODE") == "1":
+        log_and_print("ELECTRON_MODE=1: running Flask only, skipping pywebview", "info")
+        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+        return
+
     try:
         import webview
         from . import tray_helper

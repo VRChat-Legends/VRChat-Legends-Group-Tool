@@ -1,15 +1,27 @@
 import { Outlet } from 'react-router-dom';
-import NavBar from './NavBar';
-import Footer from './Footer';
+import Sidebar from './Sidebar';
+import TitleBar from './TitleBar';
 
 export default function Layout() {
   return (
-    <div className="relative z-0 flex min-h-screen flex-col vrcl-app-bg bg-beams">
-      <NavBar />
-      <main className="relative z-[1] mx-auto min-h-0 w-full max-w-none flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
-        <Outlet />
-      </main>
-      <Footer />
+    <div
+      className="vrcl-app-bg bg-beams flex flex-col"
+      style={{ height: '100vh', overflow: 'hidden' }}
+    >
+      {/* Custom title bar – only rendered inside Electron */}
+      <TitleBar />
+
+      {/* Sidebar + content */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <Sidebar />
+
+        {/* Scrollable content pane */}
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative z-[1]">
+          <div className="px-7 py-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

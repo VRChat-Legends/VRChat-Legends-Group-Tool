@@ -1,0 +1,41 @@
+{
+  "name": "vrchat-legends-group-tool",
+  "version": "1.0.0",
+  "description": "VRChat Legends Group Tool – Electron wrapper",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.eciipsestudios.vrchatlegendstool",
+    "productName": "VRChat Legends Group Tool",
+    "directories": {
+      "output": "../installer_output/electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "frontend_dist"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../app_icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

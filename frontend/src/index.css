@@ -239,3 +239,51 @@
 .profile-card .profile-card-avatar {
   box-shadow: 0 0 24px -4px rgba(92, 92, 246, 0.35);
 }
+
+/* ── PC-app / Electron ─────────────────────────────────────────────────────── */
+
+/* Makes the title bar area draggable when in Electron */
+.electron-drag {
+  -webkit-app-region: drag;
+}
+.electron-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Sidebar scroll — thinner track */
+aside {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107,70,193,0.3) transparent;
+}
+aside::-webkit-scrollbar { width: 4px; }
+aside::-webkit-scrollbar-track { background: transparent; }
+aside::-webkit-scrollbar-thumb { background: rgba(107,70,193,0.3); border-radius: 4px; }
+
+/* Pill tab bar used throughout the app */
+.tab-bar {
+  @apply flex gap-1 p-1 rounded-xl border w-fit flex-shrink-0;
+  background: rgba(255,255,255,0.025);
+  border-color: rgba(255,255,255,0.06);
+}
+.tab-bar-item {
+  @apply flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all;
+}
+.tab-bar-item--active {
+  @apply bg-vrcl-purple/20 text-white border border-vrcl-purple/25 shadow-sm;
+}
+.tab-bar-item--idle {
+  @apply text-gray-500 hover:text-gray-200 border border-transparent;
+}
+.tab-bar-item--idle:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Better focus ring for interactive elements */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(107, 70, 193, 0.7);
+  outline-offset: 2px;
+}
+
