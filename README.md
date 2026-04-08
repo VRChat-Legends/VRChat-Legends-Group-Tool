@@ -5,11 +5,11 @@
 <h1 align="center">VRChat Legends Group Tool</h1>
 
 <p align="center">
-  A desktop tool for VRChat group management workflows used by VRChat Legends.
+  A Windows desktop companion for VRChat Legends group management, moderation workflows, and local utility tools.
 </p>
 
 <p align="center">
-  <a href="https://github.com/VRChat-Legends/VRChat-Legends-Group-Tool">GitHub Repository</a>
+  <a href="https://github.com/VRChat-Legends/VRChat-Legends-Group-Tool">GitHub</a>
   ·
   <a href="http://vrchatlegends.com/shop">Official Shop</a>
   ·
@@ -18,89 +18,106 @@
 
 ---
 
-## Important Notice
+## Overview
 
-- This is a **paid tool**.  
-- The source code is provided free of charge for transparency and community visibility.  
-- You may not resell, redistribute, or repackage paid builds of this tool.  
-- Please respect the project and support continued development through the official links:
-  - [http://vrchatlegends.com/shop](http://vrchatlegends.com/shop)
-  - [https://www.patreon.com/VRChatLegends](https://www.patreon.com/VRChatLegends)
+This repository contains the source for the **VRChat Legends Group Tool**.
+It combines a Python backend with a React/Vite frontend to provide a more polished desktop workflow for VRChat group operations.
 
-## Quick Start (Official EXE)
+### Included areas
 
-If you purchased access to the official build:
+- Group and friend data helpers
+- Local dashboard and embedded web UI
+- Moderation and member-management utilities
+- Discord/webhook integration
+- Analytics, logging, caching, and backup helpers
+- Auto-update and installer support for packaged builds
 
-1. Download the latest installer or EXE from official VRChat Legends channels.
-2. Run the installer (or portable EXE).
-3. Open the app and sign in with your VRChat account.
-4. Allow the app to check for updates on startup.
+---
 
-## Build It Yourself (Source Build)
+## Important notice
 
-If you want to build from source on Windows:
+- This is a **paid tool/project** tied to the VRChat Legends ecosystem.
+- The source is visible for transparency and community visibility.
+- Do **not** resell, repackage, or impersonate official VRChat Legends releases.
+- Please support the project through the official links above.
 
-1. Install Python 3.11+ and Node.js 18+.
-2. Create your own local build workflow (PowerShell commands or private scripts).
-3. Build the frontend and package the Python app for your environment.
+---
 
-> Note: local helper batch files used for private testing are intentionally not part of the GitHub upload.
+## Getting started
 
-### Support Policy for Self-Builds
+### Official build users
 
-We do **not** provide support for custom/self-built versions of this tool.  
-If you build from source, you are responsible for your own build environment, dependencies, and troubleshooting.
+1. Download the latest installer or EXE from the official VRChat Legends channels.
+2. Run the installer and complete first-time setup.
+3. Launch the app and sign in with your VRChat account.
+4. Allow update checks on startup for the smoothest experience.
 
-## Auto Update Behavior
+### Build from source (Windows)
 
-On app startup, the tool checks this repository for the latest published release:
+**Requirements**
 
-- Repository: [https://github.com/VRChat-Legends/VRChat-Legends-Group-Tool](https://github.com/VRChat-Legends/VRChat-Legends-Group-Tool)
-- If a newer release is available, the app notifies you.
-- Frozen/installed builds attempt to download and launch the latest Windows installer automatically when possible.
+- Python `3.11+`
+- Node.js `18+`
+- npm
 
-## Antivirus / False Positive Information
+**1) Install Python dependencies**
 
-Unsigned or newly built executables are frequently flagged by antivirus scanners as a **false positive**, especially when built with tools such as PyInstaller.
+```powershell
+pip install -r requirements.txt
+```
 
-Why this happens:
+**2) Build the frontend**
 
-- The executable is unsigned or has low reputation.
-- The binary is newly compiled and not widely distributed.
-- Packaging behavior can look similar to malware heuristics.
+```powershell
+cd frontend
+npm install
+npm run build
+cd ..
+```
 
-If your self-built EXE is flagged:
+**3) Start the app**
 
-1. Upload the file to VirusTotal and review multi-engine results.
-2. Confirm file hash and source code integrity.
-3. Add a local AV exclusion only if you trust the source and hash.
-4. Prefer official distributed builds when possible.
+```powershell
+python vrchat_auto_accept.py
+```
 
-Reference scan:
+> Private helper scripts, local planning docs, and compiled binaries are intentionally kept out of the public GitHub repo.
 
-- [VirusTotal report](https://www.virustotal.com/gui/file/ed91c263fafb3a5bcbcfdb253d344b5ca8e2caea0d94309ef51df68e8baa2bae)
+---
 
-## Setup and Info Video
+## Project layout
 
-A setup and overview video is coming soon.
+| Path | Purpose |
+| --- | --- |
+| `app/` | Python application logic, auth, updater, Discord, caching, analytics |
+| `frontend/` | React/Vite interface |
+| `assets/` | Branding, icons, and bundled static resources |
+| `data/` | Local runtime data generated on the user's machine |
+
+---
+
+## Privacy and local data
+
+This project is intended to store its working data **locally on the user's machine**.
+If you enable third-party integrations, only those services you configure should receive related data.
+
+---
+
+## Support policy
+
+Support is primarily for **official distributed builds**.
+If you self-build from source, you are responsible for your environment, packaging flow, and troubleshooting.
+
+---
 
 ## Credits
 
-- VRChat Legends team - concept, operations, and maintenance
-- Community supporters - testing and feedback
-- Open-source ecosystem:
-  - Python
-  - Flask
-  - PyInstaller
-  - React / Vite
-  - VRChat API SDK
+- VRChat Legends team
+- Community testers and supporters
+- Open-source tools used by the project: Python, Flask, PyInstaller, React, Vite, and `vrchatapi`
 
-## Star History
+---
 
-<a href="https://www.star-history.com/?repos=VRChat-Legends%2FVRChat-Legends-Group-Tool&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&legend=top-left" />
- </picture>
-</a>
+## License
+
+See [`LICENSE`](LICENSE) for the repository license terms.

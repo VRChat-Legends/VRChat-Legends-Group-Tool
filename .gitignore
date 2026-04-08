@@ -16,8 +16,12 @@ __pycache__/
 dist/
 build/
 installer_output/
-*.spec.bak
+*.exe
+*.msi
 *.zip
+*.7z
+*.rar
+*.spec.bak
 
 # Local app data (generated on run)
 data/log.json
@@ -33,6 +37,10 @@ vrchat_auth.db
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # IDE / OS
 .idea/
@@ -47,6 +55,12 @@ Thumbs.db
 .env.local
 
 # Local/private helper scripts (not for GitHub)
-build.bat
-run.bat
-setup.bat
+*.bat
+
+# Local planning / dev docs (keep public docs like README.md)
+DESKTOP_UI_AUDIT.md
+PROJECT_SPEC.md
+*_AUDIT.md
+*_SPEC.md
+*_NOTES.md
+*_TODO.md
