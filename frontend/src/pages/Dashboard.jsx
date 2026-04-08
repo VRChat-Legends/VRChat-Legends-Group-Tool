@@ -9,6 +9,7 @@ import UserProfileModal from '../components/UserProfileModal';
 import CountUp from '../components/CountUp';
 import { Icons } from '../components/Icons';
 import UserAvatar from '../components/UserAvatar';
+import BlurText from '../components/BlurText';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -99,15 +100,23 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-in w-full">
+      {/* Page hero */}
+      <div className="page-hero">
+        <h1 className="page-hero-title">
+          <BlurText text="Dashboard" delay={70} />
+        </h1>
+        <p className="page-hero-sub">Your VRChat Legends control centre</p>
+      </div>
+
       {tray_minimize_available && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
             window_visible === false
               ? 'border-amber-500/40 bg-amber-500/10 text-amber-100'
-              : 'border-vrcl-purple/30 bg-vrcl-purple/10 text-surface-200'
+              : 'border-violet-500/30 bg-violet-500/10 text-surface-200'
           }`}
         >
-          <strong className={window_visible === false ? 'text-amber-200' : 'text-vrcl-purple-light'}>
+          <strong className={window_visible === false ? 'text-amber-200' : 'text-violet-400'}>
             {window_visible === false ? 'Running in tray — ' : 'Tray mode — '}
           </strong>
           The app keeps working when you close the window. Use the tray icon → Open VRChat Legends Group Tool to show it again. Hover the tray icon to see the full tooltip.

@@ -2,225 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS custom properties ─────────────────────────────────────────────── */
+:root {
+  --accent:        109, 74, 255;      /* #6d4aff — vivid violet */
+  --accent-bright: 139, 92, 246;      /* #8b5cf6 — lighter violet */
+  --pink:          244, 63, 147;      /* #f43f93 */
+  --cyan:          34,  211, 238;     /* #22d3ee */
+  --bg:            #05050a;
+  --bg-sidebar:    #08080e;
+  --surface-1:     rgba(255,255,255,0.035);
+  --surface-2:     rgba(255,255,255,0.055);
+  --border:        rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.12);
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
 @layer base {
   html { @apply antialiased; }
-  body { @apply bg-vrcl-dark text-white font-sans min-h-screen; }
+  body { background: var(--bg); @apply text-white font-sans min-h-screen; }
+
+  input, textarea, select {
+    @apply bg-surface-800/70 border border-white/[0.07] text-surface-100 rounded-xl
+           placeholder:text-surface-600 transition-colors duration-150
+           focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20;
+  }
 }
 
-/* VRCL website–style app shell (matches vrchatlegends.com rework) */
-.glass-card {
-  @apply rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm;
-}
-
+/* ─── App shell ──────────────────────────────────────────────────────────── */
 .vrcl-app-bg {
-  background-color: #0a0a0a;
+  background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(107, 70, 193, 0.22), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(255, 0, 122, 0.1), transparent),
-    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(0, 183, 235, 0.06), transparent);
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(var(--accent), 0.18), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 60%, rgba(var(--pink), 0.07), transparent 50%),
+    radial-gradient(ellipse 40% 50% at 10% 85%, rgba(var(--cyan), 0.04), transparent 50%);
 }
 
-.bg-aurora {
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(92, 92, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
-}
-
-/* Beams + VRCL hero grid (aligned with VRCL website rework) */
+/* Subtle grid texture overlay */
 .bg-beams {
-  background-color: #0a0a0a;
+  background-color: var(--bg);
   background-image:
-    linear-gradient(rgba(107, 70, 193, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(107, 70, 193, 0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(var(--accent), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent), 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
 }
 .bg-beams::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -15%, rgba(107, 70, 193, 0.18), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 90% 40%, rgba(255, 0, 122, 0.08), transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--accent), 0.14), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 90% 35%, rgba(var(--pink), 0.06), transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
 
-/* ReactBits-style card hover */
-.card-hover {
-  @apply transition-all duration-300;
-}
-.card-hover:hover {
-  @apply shadow-glow border-brand-500/30 -translate-y-0.5;
-}
-
-/* ReactBits Shine button - sweep on hover */
-.btn-shine {
-  @apply relative overflow-hidden;
-}
-.btn-shine::after {
-  content: '';
-  @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-500;
-}
-.btn-shine:hover::after {
-  @apply translate-x-full;
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
+/* Layer 2 — content cards */
+.card-surface {
+  background: linear-gradient(160deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255,255,255,0.075);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 10px 40px -12px rgba(0,0,0,0.7);
 }
 
-/* ReactBits Moving border button */
-.btn-moving-border {
-  @apply relative rounded-xl font-semibold transition-all duration-300;
-  background: linear-gradient(135deg, rgb(30 41 59), rgb(30 41 59)) padding-box,
-    linear-gradient(135deg, rgb(92 92 246), rgb(168 85 247), rgb(92 92 246)) border-box;
-  background-size: 100% 100%, 400% 400%;
-  border: 2px solid transparent;
-  animation: border-flow 4s ease infinite;
-}
-.btn-moving-border:hover {
-  @apply shadow-glow -translate-y-0.5;
-  animation-duration: 2s;
-}
-@keyframes border-flow {
-  0%, 100% { background-position: 0% 0%, 0% 50%; }
-  50% { background-position: 0% 0%, 100% 50%; }
+/* Layer 3 — modals / popovers */
+.modal-surface {
+  background: linear-gradient(160deg, rgba(16,14,28,0.98) 0%, rgba(8,8,14,0.99) 100%);
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 28px 72px -18px rgba(0,0,0,0.85),
+    0 0 0 1px rgba(0,0,0,0.4);
 }
 
-/* Nav / sidebar glass — VRCL-style purple tint */
-.nav-pill {
-  @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all duration-300;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-.nav-pill:hover {
-  @apply border-vrcl-purple/20 bg-white/10;
+/* Spotlight-ready card base — combine with SpotlightCard component */
+.glass-card {
+  @apply rounded-2xl border bg-white/[0.03] backdrop-blur-sm;
+  border-color: var(--border);
 }
 
-/* Gradient text */
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-purple-400 to-brand-500 bg-[length:200%_100%] animate-shimmer;
-}
-@keyframes shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-/* Scrollbar — VRCL website style */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #6b46c1 #0a0a0a;
-}
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-*::-webkit-scrollbar-track {
-  background: #0a0a0a;
-  border-radius: 10px;
-}
-*::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #6b46c1, #ff007a);
-  border-radius: 10px;
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #805ad5, #ff33a1);
-}
-
-/* Click spark - React Bits style */
-.click-spark-wrapper {
-  position: relative;
-}
-.click-spark-burst {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  margin-left: -6px;
-  margin-top: -6px;
-  pointer-events: none;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(92, 92, 246, 0.6) 40%, transparent 70%);
-  animation: click-spark 0.6s ease-out forwards;
-}
-@keyframes click-spark {
-  0% {
-    transform: scale(0.5);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-/* Animated content - React Bits style */
-.animate-in {
-  animation: animate-in 0.4s ease-out forwards;
-}
-@keyframes animate-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Star border - decorative */
-.star-border {
-  position: relative;
-}
-.star-border::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(92, 92, 246, 0.5), rgba(168, 85, 247, 0.4), rgba(92, 92, 246, 0.5));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Magic bento - React Bits style mixed grid */
-.bento-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(140px, auto);
-}
-@media (max-width: 768px) {
-  .bento-grid {
-    grid-template-columns: 1fr;
-  }
-}
-.bento-cell-1 { grid-column: span 1; grid-row: span 1; }
-.bento-cell-2 { grid-column: span 1; grid-row: span 2; }
-.bento-cell-wide { grid-column: span 2; grid-row: span 1; }
-@media (max-width: 768px) {
-  .bento-cell-2,
-  .bento-cell-wide { grid-column: span 1; grid-row: span 1; }
-}
-
-/* Logo loop - React Bits style infinite loop */
-.logo-loop {
-  display: inline-flex;
-  animation: logo-loop 8s linear infinite;
-}
-@keyframes logo-loop {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-.logo-loop-slow {
-  animation-duration: 20s;
-}
-
-/* Profile card - React Bits style gradient border and glow */
+/* ─── Profile card ───────────────────────────────────────────────────────── */
 .profile-card {
   position: relative;
-  border-radius: 1.5rem;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(22,20,38,0.92), rgba(10,10,18,0.97));
+  border: 1px solid rgba(255,255,255,0.08);
   overflow: hidden;
 }
 .profile-card::before {
@@ -229,47 +94,100 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(92, 92, 246, 0.4), rgba(168, 85, 247, 0.3), rgba(92, 92, 246, 0.4));
+  background: linear-gradient(135deg,
+    rgba(var(--accent), 0.45),
+    rgba(var(--accent-bright), 0.3),
+    rgba(var(--accent), 0.45));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
-.profile-card .profile-card-avatar {
-  box-shadow: 0 0 24px -4px rgba(92, 92, 246, 0.35);
+.profile-card-avatar {
+  box-shadow: 0 0 28px -6px rgba(var(--accent), 0.4);
 }
 
-/* ── PC-app / Electron ─────────────────────────────────────────────────────── */
-
-/* Makes the title bar area draggable when in Electron */
-.electron-drag {
-  -webkit-app-region: drag;
+/* ─── Card interactions ──────────────────────────────────────────────────── */
+.card-hover {
+  @apply transition-all duration-300;
 }
-.electron-no-drag {
-  -webkit-app-region: no-drag;
+.card-hover:hover {
+  border-color: rgba(var(--accent), 0.25) !important;
+  box-shadow: 0 0 0 1px rgba(var(--accent), 0.15), 0 12px 40px -12px rgba(0,0,0,0.6);
+  transform: translateY(-1px);
 }
 
-/* Sidebar scroll — thinner track */
-aside {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(107,70,193,0.3) transparent;
+.card-lift {
+  @apply transition-all duration-200 ease-out;
 }
-aside::-webkit-scrollbar { width: 4px; }
-aside::-webkit-scrollbar-track { background: transparent; }
-aside::-webkit-scrollbar-thumb { background: rgba(107,70,193,0.3); border-radius: 4px; }
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(var(--accent), 0.18);
+}
 
-/* Pill tab bar used throughout the app */
+.glow-ring {
+  box-shadow: 0 0 0 1px rgba(var(--accent), 0.3), 0 0 18px -5px rgba(var(--accent), 0.2);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+/* Shine sweep on hover */
+.btn-shine {
+  @apply relative overflow-hidden;
+}
+.btn-shine::after {
+  content: '';
+  @apply absolute inset-0 -translate-x-full
+         bg-gradient-to-r from-transparent via-white/20 to-transparent
+         transition-transform duration-500;
+}
+.btn-shine:hover::after { @apply translate-x-full; }
+
+/* Animated gradient border */
+.btn-moving-border {
+  @apply relative rounded-xl font-semibold transition-all duration-300;
+  background:
+    linear-gradient(135deg, rgb(20 18 36), rgb(20 18 36)) padding-box,
+    linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-bright)), rgb(var(--accent))) border-box;
+  background-size: 100% 100%, 400% 400%;
+  border: 2px solid transparent;
+  animation: border-flow 4s ease infinite;
+}
+.btn-moving-border:hover {
+  box-shadow: 0 0 30px -8px rgba(var(--accent), 0.5);
+  animation-duration: 2s;
+  transform: translateY(-1px);
+}
+@keyframes border-flow {
+  0%, 100% { background-position: 0% 0%, 0% 50%; }
+  50%       { background-position: 0% 0%, 100% 50%; }
+}
+
+/* ─── Navigation ─────────────────────────────────────────────────────────── */
+.nav-pill {
+  @apply rounded-2xl border backdrop-blur-xl transition-all duration-300;
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.nav-pill:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(var(--accent), 0.2);
+}
+
+/* ─── Tab bar ────────────────────────────────────────────────────────────── */
 .tab-bar {
   @apply flex gap-1 p-1 rounded-xl border w-fit flex-shrink-0;
-  background: rgba(255,255,255,0.025);
+  background: rgba(255,255,255,0.02);
   border-color: rgba(255,255,255,0.06);
 }
 .tab-bar-item {
   @apply flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all;
 }
 .tab-bar-item--active {
-  @apply bg-vrcl-purple/20 text-white border border-vrcl-purple/25 shadow-sm;
+  background: rgba(var(--accent), 0.18);
+  @apply text-white border shadow-sm;
+  border-color: rgba(var(--accent), 0.3);
 }
 .tab-bar-item--idle {
   @apply text-gray-500 hover:text-gray-200 border border-transparent;
@@ -278,62 +196,206 @@ aside::-webkit-scrollbar-thumb { background: rgba(107,70,193,0.3); border-radius
   background: rgba(255,255,255,0.04);
 }
 
-/* Better focus ring for interactive elements */
-button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible {
-  outline: 2px solid rgba(107, 70, 193, 0.7);
-  outline-offset: 2px;
+/* ─── Text helpers ───────────────────────────────────────────────────────── */
+.text-gradient {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg,
+    rgb(var(--accent-bright)),
+    rgb(var(--pink)),
+    rgb(var(--accent-bright)));
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
-/* ── Status colour utilities ─────────────────────────────────────────────── */
-.status-online { color: #10b981; }
-.status-join-me { color: #3b82f6; }
-.status-ask-me { color: #f59e0b; }
-.status-busy { color: #ef4444; }
-.status-offline { color: #64748b; }
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--accent), 0.4) transparent;
+}
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(var(--accent), 0.5), rgba(var(--pink), 0.4));
+  border-radius: 6px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(var(--accent), 0.7), rgba(var(--pink), 0.6));
+}
 
-.status-dot-online { @apply bg-emerald-500; }
-.status-dot-join-me { @apply bg-blue-500; }
-.status-dot-ask-me { @apply bg-amber-500; }
-.status-dot-busy { @apply bg-red-500; }
-.status-dot-offline { @apply bg-surface-600; }
+/* ─── Sidebar ────────────────────────────────────────────────────────────── */
+aside {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--accent), 0.2) transparent;
+}
+aside::-webkit-scrollbar { width: 3px; }
+aside::-webkit-scrollbar-track { background: transparent; }
+aside::-webkit-scrollbar-thumb {
+  background: rgba(var(--accent), 0.25);
+  border-radius: 3px;
+}
 
-/* ── Subtle shimmer for loading skeletons ────────────────────────────────── */
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+.animate-in {
+  animation: animate-in 0.35s ease-out both;
+}
+@keyframes animate-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fade-in-up 0.35s ease-out both; }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.zoom-in { animation: zoom-in 0.25s ease-out both; }
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Staggered entrance helper — add to grid children */
+.stagger-item { animation: animate-in 0.3s ease-out both; }
+.stagger-item:nth-child(1)  { animation-delay: 0ms; }
+.stagger-item:nth-child(2)  { animation-delay: 30ms; }
+.stagger-item:nth-child(3)  { animation-delay: 60ms; }
+.stagger-item:nth-child(4)  { animation-delay: 90ms; }
+.stagger-item:nth-child(5)  { animation-delay: 120ms; }
+.stagger-item:nth-child(6)  { animation-delay: 150ms; }
+.stagger-item:nth-child(7)  { animation-delay: 180ms; }
+.stagger-item:nth-child(8)  { animation-delay: 210ms; }
+.stagger-item:nth-child(9)  { animation-delay: 240ms; }
+.stagger-item:nth-child(10) { animation-delay: 270ms; }
+
+/* ─── Skeleton ───────────────────────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
-/* ── Smooth page / card fade transitions ────────────────────────────────── */
-.fade-in { animation: fade-in-up 0.35s ease-out both; }
-.zoom-in { animation: zoom-in 0.25s ease-out both; }
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ─── Status ─────────────────────────────────────────────────────────────── */
+.status-online  { color: #10b981; }
+.status-join-me { color: #3b82f6; }
+.status-ask-me  { color: #f59e0b; }
+.status-busy    { color: #ef4444; }
+.status-offline { color: #64748b; }
+
+.status-dot-online  { @apply bg-emerald-500; }
+.status-dot-join-me { @apply bg-blue-500; }
+.status-dot-ask-me  { @apply bg-amber-500; }
+.status-dot-busy    { @apply bg-red-500; }
+.status-dot-offline { @apply bg-surface-600; }
+
+/* ─── Click spark ────────────────────────────────────────────────────────── */
+.click-spark-wrapper { position: relative; }
+.click-spark-burst {
+  position: absolute;
+  width: 12px; height: 12px;
+  margin-left: -6px; margin-top: -6px;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.9) 0%,
+    rgba(var(--accent), 0.6) 40%,
+    transparent 70%);
+  animation: click-spark 0.6s ease-out forwards;
 }
-@keyframes zoom-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes click-spark {
+  0%   { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(4);   opacity: 0; }
 }
 
-/* ── Hover lift effect for interactive cards ─────────────────────────────── */
-.card-lift {
-  @apply transition-all duration-200 ease-out;
+/* ─── Bento grid ─────────────────────────────────────────────────────────── */
+.bento-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(130px, auto);
 }
-.card-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -8px rgba(107, 70, 193, 0.15);
+.bento-cell-1    { grid-column: span 1; grid-row: span 1; }
+.bento-cell-2    { grid-column: span 1; grid-row: span 2; }
+.bento-cell-wide { grid-column: span 2; grid-row: span 1; }
+
+/* ─── Star border ────────────────────────────────────────────────────────── */
+.star-border { position: relative; }
+.star-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+    rgba(var(--accent), 0.45),
+    rgba(var(--pink), 0.25),
+    rgba(var(--accent), 0.45));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
-/* ── Glow ring for selected / active items ───────────────────────────────── */
-.glow-ring {
-  box-shadow: 0 0 0 1px rgba(107, 70, 193, 0.3), 0 0 16px -4px rgba(107, 70, 193, 0.2);
+/* ─── Misc helpers ───────────────────────────────────────────────────────── */
+.section-divider { @apply border-t border-white/[0.05] my-4; }
+
+.bg-aurora {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(var(--accent), 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(var(--accent-bright), 0.1) 0%, transparent 50%);
 }
+
+/* ─── Electron drag regions ──────────────────────────────────────────────── */
+.electron-drag    { -webkit-app-region: drag; }
+.electron-no-drag { -webkit-app-region: no-drag; }
+
+/* Focus rings */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(var(--accent), 0.7);
+  outline-offset: 2px;
+}
+
+/* ─── kbd ────────────────────────────────────────────────────────────────── */
+kbd {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded-md text-[0.6rem] font-semibold
+         bg-surface-800 border border-surface-700 text-surface-400;
+  font-family: ui-monospace, monospace;
+}
+
+/* ─── Page hero header ───────────────────────────────────────────────────── */
+.page-hero { @apply mb-6 flex-shrink-0; }
+.page-hero-title { @apply text-2xl font-bold tracking-tight text-white; }
+.page-hero-sub   { @apply text-sm text-surface-500 mt-0.5; }
+
+/* ─── Person card grid item ──────────────────────────────────────────────── */
+.person-card {
+  @apply flex flex-col items-center gap-2 p-3 rounded-2xl
+         border border-transparent
+         hover:border-white/10 transition-all duration-200
+         cursor-pointer relative;
+  background: rgba(255,255,255,0.025);
+}
+.person-card:hover {
+  background: rgba(255,255,255,0.045);
+  box-shadow: 0 4px 20px -8px rgba(var(--accent), 0.15);
+}
+.person-card:hover .person-card-actions { opacity: 1; }
+.person-card-actions { @apply opacity-0 transition-opacity duration-200; }
 

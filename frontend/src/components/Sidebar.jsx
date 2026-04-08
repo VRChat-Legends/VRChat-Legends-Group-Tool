@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+﻿import { NavLink } from 'react-router-dom';
 
 const LOGO = '/assets/branding/group_tool_icon.png';
 
@@ -36,13 +36,13 @@ const NAV = [
 ];
 
 const EXTERNAL = [
-  { href: 'https://vrchatlegends.com/shop', label: 'Shop', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
+  { href: 'https://vrchatlegends.com/shop',         label: 'Shop',    icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
   { href: 'https://discord.com/invite/6xPkZ7Dxp9', label: 'Discord', icon: 'M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 00-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 00-5.487 0 12.36 12.36 0 00-.617-1.23A.077.077 0 008.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 00-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 00.031.055 20.03 20.03 0 005.993 2.98.078.078 0 00.084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 01-1.872-.878.075.075 0 01-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 01.078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 01.079.009c.12.098.245.195.372.288a.075.075 0 01-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 00-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 00.084.028 19.963 19.963 0 006.002-2.981.076.076 0 00.032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 00-.031-.028z' },
 ];
 
 function NavIcon({ d }) {
   return (
-    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="w-[1.05rem] h-[1.05rem] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d={d} />
     </svg>
   );
@@ -53,21 +53,38 @@ function SidebarItem({ to, label, icon }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 group ${
+        `relative flex items-center gap-2.5 px-3 py-[0.42rem] rounded-xl text-[0.825rem] font-medium transition-all duration-150 group overflow-hidden ${
           isActive
-            ? 'bg-vrcl-purple/20 text-white border border-vrcl-purple/25 shadow-sm'
-            : 'text-gray-500 hover:bg-white/[0.05] hover:text-gray-200 border border-transparent'
+            ? 'text-white'
+            : 'text-gray-500 hover:text-gray-100 border border-transparent hover:border-white/[0.05]'
         }`
+      }
+      style={({ isActive }) =>
+        isActive
+          ? {
+              background: 'rgba(109,74,255,0.13)',
+              border: '1px solid rgba(109,74,255,0.22)',
+              boxShadow: '0 0 16px -6px rgba(109,74,255,0.35)',
+            }
+          : undefined
       }
     >
       {({ isActive }) => (
         <>
+          {isActive && (
+            <span
+              className="absolute left-0 top-[0.35rem] bottom-[0.35rem] w-[3px] rounded-r-full"
+              style={{
+                background: 'linear-gradient(180deg, #8b5cf6, #6d4aff)',
+                boxShadow: '0 0 8px rgba(109,74,255,0.7)',
+              }}
+            />
+          )}
           <span
-            className={`w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 transition-colors ${
-              isActive
-                ? 'bg-vrcl-purple/25 text-vrcl-purple-light'
-                : 'bg-transparent text-gray-600 group-hover:text-gray-400'
+            className={`w-6 h-6 flex items-center justify-center rounded-lg flex-shrink-0 transition-all duration-150 ${
+              isActive ? 'text-violet-300' : 'text-gray-600 group-hover:text-gray-300'
             }`}
+            style={isActive ? { filter: 'drop-shadow(0 0 6px rgba(109,74,255,0.5))' } : undefined}
           >
             <NavIcon d={icon} />
           </span>
@@ -80,30 +97,44 @@ function SidebarItem({ to, label, icon }) {
 
 export default function Sidebar() {
   return (
-    <aside className="w-56 flex-shrink-0 flex flex-col bg-[#0c0c0c] border-r border-white/[0.05] h-full">
+    <aside
+      className="w-56 flex-shrink-0 flex flex-col h-full border-r"
+      style={{
+        background: 'linear-gradient(180deg, #08080e 0%, #06060b 100%)',
+        borderColor: 'rgba(255,255,255,0.05)',
+      }}
+    >
       {/* Logo / brand */}
-      <div className="px-4 pt-5 pb-4 border-b border-white/[0.05]">
+      <div className="px-4 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="flex items-center gap-3">
-          <img
-            src={LOGO}
-            alt="VRChat Legends"
-            className="w-9 h-9 rounded-xl object-cover flex-shrink-0 shadow-md shadow-vrcl-purple/20 ring-1 ring-vrcl-purple/20"
-          />
+          <div className="relative flex-shrink-0">
+            <img
+              src={LOGO}
+              alt="VRChat Legends"
+              className="w-9 h-9 rounded-xl object-cover"
+              style={{ boxShadow: '0 0 16px -4px rgba(109,74,255,0.5), 0 0 0 1px rgba(109,74,255,0.2)' }}
+            />
+          </div>
           <div className="min-w-0">
-            <p className="text-sm font-black text-white leading-tight truncate tracking-tight">
+            <p className="text-[0.8rem] font-black text-white leading-tight truncate tracking-tight">
               VRChat Legends
             </p>
-            <p className="text-[0.65rem] text-gray-600 truncate font-medium">Group Tool</p>
+            <p className="text-[0.6rem] font-medium truncate" style={{ color: 'rgba(139,92,246,0.7)' }}>
+              Group Tool
+            </p>
           </div>
         </div>
       </div>
 
       {/* Nav groups */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-5">
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-4">
         {NAV.map((group) => (
           <div key={group.key}>
             {group.label && (
-              <p className="mb-1.5 px-3 text-[0.6rem] font-bold uppercase tracking-widest text-gray-700">
+              <p
+                className="mb-1.5 px-2.5 text-[0.57rem] font-bold uppercase tracking-[0.14em] select-none"
+                style={{ color: 'rgba(255,255,255,0.2)' }}
+              >
                 {group.label}
               </p>
             )}
@@ -116,27 +147,30 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* External quick-links */}
-      <div className="px-3 pb-4 pt-2 border-t border-white/[0.05] space-y-0.5">
+      {/* External quick-links + credit */}
+      <div className="px-2.5 pb-3 pt-2 space-y-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         {EXTERNAL.map(({ href, label, icon }) => (
           <a
             key={href}
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-600 hover:text-gray-300 hover:bg-white/[0.04] transition-all border border-transparent group"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[0.8rem] transition-colors"
+            style={{ color: 'rgba(255,255,255,0.25)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = ''; }}
           >
-            <span className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 text-gray-700 group-hover:text-gray-400 transition-colors">
+            <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <NavIcon d={icon} />
             </span>
             <span className="truncate">{label}</span>
-            <svg className="ml-auto w-3 h-3 text-gray-700 flex-shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="ml-auto w-2.5 h-2.5 flex-shrink-0 opacity-40" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 10L10 2M6 2h4v4" />
             </svg>
           </a>
         ))}
-        <p className="px-3 pt-2 text-[0.58rem] text-gray-800 truncate">
-          EcIipse Studios™ — not affiliated with VRChat Inc.
+        <p className="px-3 pt-1.5 text-[0.53rem] leading-relaxed" style={{ color: 'rgba(255,255,255,0.12)' }}>
+          EcIipse Studios&#8482; &middot; Not affiliated with VRChat Inc.
         </p>
       </div>
     </aside>

@@ -1,13 +1,35 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+const ROUTE_NAMES = {
+  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
+  '/people': 'People',
+  '/moderation': 'Activity',
+  '/integrations': 'Integrations',
+  '/settings': 'Settings',
+  '/vrchat-status': 'VRChat Status',
+  '/info': 'Info & Docs',
+  '/group': 'Group',
+  '/analytics': 'Analytics',
+  '/chatbox': 'Chatbox',
+  '/discord': 'Discord',
+  '/activity': 'Activity',
+  '/about': 'About',
+  '/ai': 'AI',
+  '/credits': 'Credits',
+  '/auth-store': 'Auth Store',
+};
 
 /**
  * Custom frameless title bar – only visible when running inside Electron.
- * The wide drag region lets users move the window; the three buttons call
- * window‑control IPC messages exposed by preload.js.
+ * Shows the current page name in the centre drag region.
  */
 export default function TitleBar() {
   const eAPI = window.electronAPI;
   const [isMaximized, setIsMaximized] = useState(false);
+  const location = useLocation();
+  const pageName = ROUTE_NAMES[location.pathname] ?? 'VRChat Legends Group Tool';
 
   useEffect(() => {
     if (!eAPI) return;
@@ -20,31 +42,36 @@ export default function TitleBar() {
 
   return (
     <div
-      className="flex items-center h-9 flex-shrink-0 bg-[#080808] border-b border-white/[0.06] select-none z-[100]"
+      className="flex items-center h-9 flex-shrink-0 bg-[#070707] border-b border-white/[0.05] select-none z-[100]"
       style={{ WebkitAppRegion: 'drag' }}
     >
-      {/* App name pill */}
+      {/* App name / logo */}
       <div className="flex items-center gap-2 px-4 h-full" style={{ WebkitAppRegion: 'drag' }}>
         <img
           src="/assets/branding/group_tool_icon.png"
           alt=""
-          className="h-4 w-4 rounded object-cover opacity-80"
+          className="h-4 w-4 rounded object-cover opacity-70"
         />
-        <span className="text-[0.65rem] font-semibold tracking-wide text-gray-500 uppercase">
-          VRChat Legends Group Tool
+        <span className="text-[0.62rem] font-semibold tracking-wide text-gray-600 uppercase">
+          VRChat Legends
         </span>
+      </div>
+
+      {/* Current page name — centred in remaining space */}
+      <div className="flex-1 flex items-center justify-center h-full pointer-events-none" style={{ WebkitAppRegion: 'drag' }}>
+        <span className="text-[0.68rem] font-semibold text-gray-500 tracking-tight">{pageName}</span>
       </div>
 
       {/* Window controls ─ right side */}
       <div
-        className="ml-auto flex items-center h-full"
+        className="flex items-center h-full"
         style={{ WebkitAppRegion: 'no-drag' }}
       >
         {/* Minimize */}
         <button
           type="button"
           onClick={() => eAPI.minimize()}
-          className="w-11 h-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.07] transition-colors"
+          className="w-11 h-full flex items-center justify-center text-gray-600 hover:text-white hover:bg-white/[0.07] transition-colors"
           aria-label="Minimize"
         >
           <svg viewBox="0 0 12 12" width="11" height="11" fill="currentColor">
@@ -56,7 +83,7 @@ export default function TitleBar() {
         <button
           type="button"
           onClick={() => eAPI.maximize()}
-          className="w-11 h-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.07] transition-colors"
+          className="w-11 h-full flex items-center justify-center text-gray-600 hover:text-white hover:bg-white/[0.07] transition-colors"
           aria-label={isMaximized ? 'Restore' : 'Maximize'}
         >
           {isMaximized ? (
@@ -75,7 +102,7 @@ export default function TitleBar() {
         <button
           type="button"
           onClick={() => eAPI.close()}
-          className="w-11 h-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-red-600/80 transition-colors"
+          className="w-11 h-full flex items-center justify-center text-gray-600 hover:text-white hover:bg-red-600/80 transition-colors"
           aria-label="Close"
         >
           <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">

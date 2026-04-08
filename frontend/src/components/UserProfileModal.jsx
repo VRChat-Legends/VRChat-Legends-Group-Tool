@@ -88,7 +88,7 @@ export default function UserProfileModal({ displayName, onClose, inWorld = true 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="profile-card max-w-lg w-full max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col shadow-2xl"
+        className="modal-surface max-w-lg w-full max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────── */}

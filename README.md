@@ -118,6 +118,43 @@ If you self-build from source, you are responsible for your environment, packagi
 
 ---
 
+## Antivirus / false positive notice
+
+Unsigned or newly compiled executables are often flagged by antivirus engines as a **false positive**, particularly when built with PyInstaller.
+
+**Why this happens:**
+- The executable is unsigned (no code-signing certificate yet)
+- New binaries have no established reputation score
+- PyInstaller packaging patterns can trigger heuristic detections
+
+**What to do:**
+1. Download only from official VRChat Legends channels
+2. Verify the file hash matches the published release
+3. Upload the file to VirusTotal to review multi-engine results
+4. Add a local AV exclusion only if you trust the source and hash
+
+Reference scan of the official build: [VirusTotal report](https://www.virustotal.com/gui/file/ed91c263fafb3a5bcbcfdb253d344b5ca8e2caea0d94309ef51df68e8baa2bae)
+
+---
+
+## Star history
+
+<a href="https://www.star-history.com/?repos=VRChat-Legends%2FVRChat-Legends-Group-Tool&type=date&legend=top-left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=VRChat-Legends/VRChat-Legends-Group-Tool&type=date&legend=top-left" />
+  </picture>
+</a>
+
+---
+
 ## License
 
-See [`LICENSE`](LICENSE) for the repository license terms.
+This project is licensed under the **GNU General Public License v3.0**.  
+See [`LICENSE`](LICENSE) for the full license text.
+
+---
+
+> **Not affiliated with, endorsed by, or in any way officially connected to VRChat Inc.**  
+> VRChat is a trademark of VRChat Inc. All VRChat-related trademarks and content belong to their respective owners.
