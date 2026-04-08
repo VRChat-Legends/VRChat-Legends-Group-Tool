@@ -1,0 +1,52 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Build / packaging output
+dist/
+build/
+installer_output/
+*.spec.bak
+*.zip
+
+# Local app data (generated on run)
+data/log.json
+data/group_cache.json
+data/user_ids.json
+data/vrchat_auth.db
+data/blocked_users.json
+data/app_favorites.json
+data/discord_config.json
+data/backup/
+vrchat_auth.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.local
+
+# Local/private helper scripts (not for GitHub)
+build.bat
+run.bat
+setup.bat
