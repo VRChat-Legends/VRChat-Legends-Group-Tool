@@ -48,6 +48,7 @@ export const api = {
   userAction: (action, userId, message) => api.post('/api/user-action', { action, userId, message }),
 
   friends: () => api.get('/api/friends'),
+  favoriteGroups: () => api.get('/api/favorite-groups'),
   removeFriend: (userId) => api.post('/api/remove-friend', { userId }),
   currentUserFiles: () => api.get('/api/current-user-files'),
   updateCurrentUserBio: (bio) => api.patch('/api/current-user', { bio }),
@@ -76,6 +77,38 @@ export const api = {
   vrchatRefresh: () => api.post('/api/vrchat-refresh'),
   restart: () => api.post('/api/restart'),
   exportData: () => api.get('/api/export-data'),
+
+  // ── VRChat API proxy endpoints ──────────────────────────
+  getWorld: (worldId) => api.get(`/api/world/${encodeURIComponent(worldId)}`),
+  getInstance: (worldId, instanceId) => api.get(`/api/world/${encodeURIComponent(worldId)}/instance/${encodeURIComponent(instanceId)}`),
+
+  notifications: () => api.get('/api/notifications'),
+  acceptNotification: (id) => api.post(`/api/notifications/${encodeURIComponent(id)}/accept`),
+  deleteNotification: (id) => api.delete(`/api/notifications/${encodeURIComponent(id)}`),
+
+  friendStatus: (userId) => api.get(`/api/friend-status/${encodeURIComponent(userId)}`),
+  sendFriendRequest: (userId) => api.post(`/api/friend-request/${encodeURIComponent(userId)}`),
+
+  playerModerations: () => api.get('/api/player-moderations'),
+  createPlayerModeration: (targetUserId, type) => api.post('/api/player-moderations', { targetUserId, type }),
+  deletePlayerModeration: (modId) => api.delete(`/api/player-moderations/${encodeURIComponent(modId)}`),
+
+  groupAnnouncement: (groupId) => api.get(`/api/group/${encodeURIComponent(groupId)}/announcement`),
+  groupBans: (groupId) => api.get(`/api/group/${encodeURIComponent(groupId)}/bans`),
+  unbanGroupMember: (groupId, userId) => api.delete(`/api/group/${encodeURIComponent(groupId)}/bans/${encodeURIComponent(userId)}`),
+  groupPosts: (groupId) => api.get(`/api/group/${encodeURIComponent(groupId)}/posts`),
+
+  searchUsers: (q) => api.get(`/api/search/users?q=${encodeURIComponent(q)}`),
+  searchWorlds: (q) => api.get(`/api/search/worlds?q=${encodeURIComponent(q)}`),
+
+  getAvatar: (avatarId) => api.get(`/api/avatar/${encodeURIComponent(avatarId)}`),
+  inviteUser: (userId, worldId, instanceId) => api.post(`/api/invite/${encodeURIComponent(userId)}`, { worldId, instanceId }),
+
+  favorites: (type) => api.get(`/api/favorites${type ? `?type=${encodeURIComponent(type)}` : ''}`),
+  addFavorite: (type, favoriteId, tags = []) => api.post('/api/favorites', { type, favoriteId, tags }),
+  removeFavorite: (favId) => api.delete(`/api/favorites/${encodeURIComponent(favId)}`),
+
+  currentUserPermissions: () => api.get('/api/current-user/permissions'),
 };
 
 export default api;

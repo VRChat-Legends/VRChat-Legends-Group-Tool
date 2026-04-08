@@ -18,7 +18,7 @@ export default function About() {
         <div className="relative">
           <div className="flex items-center gap-3 mb-3">
             <img
-              src="/assets/vrchat%20legends/vrchat_legends_logo_round.png"
+              src="/assets/branding/group_tool_icon.png"
               alt="VRChat Legends"
               className="w-12 h-12 rounded-xl object-cover shadow-lg shadow-vrcl-purple/30 ring-1 ring-white/10"
             />

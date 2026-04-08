@@ -287,3 +287,53 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* ── Status colour utilities ─────────────────────────────────────────────── */
+.status-online { color: #10b981; }
+.status-join-me { color: #3b82f6; }
+.status-ask-me { color: #f59e0b; }
+.status-busy { color: #ef4444; }
+.status-offline { color: #64748b; }
+
+.status-dot-online { @apply bg-emerald-500; }
+.status-dot-join-me { @apply bg-blue-500; }
+.status-dot-ask-me { @apply bg-amber-500; }
+.status-dot-busy { @apply bg-red-500; }
+.status-dot-offline { @apply bg-surface-600; }
+
+/* ── Subtle shimmer for loading skeletons ────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Smooth page / card fade transitions ────────────────────────────────── */
+.fade-in { animation: fade-in-up 0.35s ease-out both; }
+.zoom-in { animation: zoom-in 0.25s ease-out both; }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Hover lift effect for interactive cards ─────────────────────────────── */
+.card-lift {
+  @apply transition-all duration-200 ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(107, 70, 193, 0.15);
+}
+
+/* ── Glow ring for selected / active items ───────────────────────────────── */
+.glow-ring {
+  box-shadow: 0 0 0 1px rgba(107, 70, 193, 0.3), 0 0 16px -4px rgba(107, 70, 193, 0.2);
+}
+

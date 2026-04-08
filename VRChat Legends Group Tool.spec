@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['C:\\Users\\Cadyn\\Documents\\VRChat Legends Group Tool\\VRChat Legends Group Tool\\vrchat_auto_accept.py'],
+    ['C:\\Users\\Cadyn\\Documents\\VRChat-Legends-Group-Tool\\vrchat_auto_accept.py'],
     pathex=[],
     binaries=[],
     datas=[('frontend/dist', 'frontend/dist'), ('assets', 'assets'), ('app_icon.ico', '.')],

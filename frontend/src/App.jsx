@@ -29,7 +29,7 @@ function ProtectedRoute({ children }) {
         <div className="relative flex flex-col items-center gap-5">
           <div className="relative">
             <img
-              src="/assets/vrchat%20legends/vrchat_legends_logo_round.png"
+              src="/assets/branding/group_tool_icon.png"
               alt=""
               className="h-16 w-16 rounded-xl object-cover shadow-lg shadow-vrcl-purple/30 ring-2 ring-vrcl-purple/20"
             />

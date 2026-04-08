@@ -5,7 +5,7 @@ const INTRO_DURATION_MS = 2400;
 const WELCOME_DURATION_MS = 1800;
 const FADE_MS = 550;
 
-const LOGO_URL = '/assets/vrchat%20legends/vrchat_legends_logo_round.png';
+const LOGO_URL = '/assets/branding/group_tool_icon.png';
 
 export default function SplashScreen({ onComplete, skipIntro }) {
   const [phase, setPhase] = useState('intro'); // intro | welcome | fade

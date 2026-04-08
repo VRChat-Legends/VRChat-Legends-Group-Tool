@@ -15,7 +15,7 @@
  *   electron-builder will bundle this together with the Python EXE.
  */
 
-const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage, Notification } = require('electron');
 const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
@@ -23,6 +23,22 @@ const { spawn } = require('child_process');
 const BACKEND_PORT = 5555;
 let mainWindow = null;
 let pythonProcess = null;
+let tray = null;
+
+// ─── Single instance lock ─────────────────────────────────────────────────────
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to launch a second instance — focus the existing window
+    if (mainWindow) {
+      if (!mainWindow.isVisible()) mainWindow.show();
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
 
 // ─── Backend health-check ─────────────────────────────────────────────────────
 function waitForBackend(maxAttempts = 80, interval = 400) {
@@ -77,20 +93,16 @@ function startPythonBackend() {
 
 // ─── Window creation ──────────────────────────────────────────────────────────
 function createWindow() {
-  const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
-  const winW = Math.min(1440, Math.round(sw * 0.88));
-  const winH = Math.min(900, Math.round(sh * 0.90));
-
   mainWindow = new BrowserWindow({
-    width: winW,
-    height: winH,
+    width: 1280,
+    height: 800,
     minWidth: 920,
     minHeight: 620,
     center: true,
     frame: false,           // Custom title bar
     titleBarStyle: 'hidden',
     backgroundColor: '#0a0a0a',
-    icon: path.join(__dirname, '..', 'app_icon.ico'),
+    icon: path.join(__dirname, '..', 'assets', 'branding', 'group_tool_icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -102,8 +114,10 @@ function createWindow() {
 
   mainWindow.loadURL(`http://127.0.0.1:${BACKEND_PORT}`);
 
+  // Show the window immediately when ready (not hidden to tray)
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    mainWindow.focus();
   });
 
   mainWindow.on('maximize', () => {
@@ -113,14 +127,74 @@ function createWindow() {
     mainWindow.webContents.send('maximize-change', false);
   });
 
+  // Close to tray instead of quitting
+  mainWindow.on('close', (e) => {
+    if (!app.isQuitting) {
+      e.preventDefault();
+      mainWindow.hide();
+      // Show a notification the first time
+      if (!app._trayNoticeShown && Notification.isSupported()) {
+        new Notification({
+          title: 'VRChat Legends Group Tool',
+          body: 'Still running in the background. Right-click the tray icon to quit.',
+          icon: path.join(__dirname, '..', 'assets', 'branding', 'group_tool_icon.png'),
+        }).show();
+        app._trayNoticeShown = true;
+      }
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+}
+
+// ─── System tray ──────────────────────────────────────────────────────────────
+function createTray() {
+  const iconPath = path.join(__dirname, '..', 'assets', 'branding', 'group_tool_icon.png');
+  let trayIcon;
+  try {
+    trayIcon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+  } catch {
+    trayIcon = nativeImage.createEmpty();
+  }
+
+  tray = new Tray(trayIcon);
+  tray.setToolTip('VRChat Legends Group Tool — running');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Open',
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        app.isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+  tray.setContextMenu(contextMenu);
+
+  tray.on('double-click', () => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
 }
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   startPythonBackend();
+  createTray();
 
   try {
     await waitForBackend();
@@ -133,16 +207,25 @@ app.whenReady().then(async () => {
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    else if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
 });
 
+app.on('before-quit', () => {
+  app.isQuitting = true;
+});
+
 app.on('window-all-closed', () => {
-  if (pythonProcess) {
-    try {
-      pythonProcess.kill('SIGTERM');
-    } catch {}
+  // Don't quit — we keep running in tray. Only quit if app.isQuitting is set.
+  if (app.isQuitting) {
+    if (pythonProcess) {
+      try { pythonProcess.kill('SIGTERM'); } catch {}
+    }
+    if (process.platform !== 'darwin') app.quit();
   }
-  if (process.platform !== 'darwin') app.quit();
 });
 
 // ─── Window control IPC ───────────────────────────────────────────────────────

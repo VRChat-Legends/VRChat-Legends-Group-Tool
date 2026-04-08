@@ -12,7 +12,7 @@ function BootSpinner({ label }) {
       <div className="relative flex flex-col items-center gap-4">
         <div className="relative">
           <img
-            src="/assets/vrchat%20legends/vrchat_legends_logo_round.png"
+            src="/assets/branding/group_tool_icon.png"
             alt=""
             className="h-14 w-14 rounded-xl object-cover opacity-90 shadow-lg shadow-vrcl-purple/20 ring-2 ring-vrcl-purple/25"
           />

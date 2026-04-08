@@ -214,10 +214,17 @@ export default function Members() {
                     <button key={friend.id} type="button" onClick={() => openCard(friend)}
                       className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.05] border border-transparent hover:border-surface-700 transition-all text-left relative group"
                     >
-                      <button type="button" onClick={(e) => toggleAppFavorite(friend, e)}
-                        className={`absolute top-1.5 right-1.5 z-10 p-1 rounded-lg bg-surface-900/80 transition-opacity text-sm ${isFavorite(friend) ? 'text-amber-400 opacity-100' : 'text-surface-500 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
-                        title={isAppFavorite(friend) ? 'Remove from favorites' : 'Add to favorites'}
-                      >{isFavorite(friend) ? '★' : '☆'}</button>
+                      {/* Dual favorite stars: VRC (amber, read-only) + App (violet, interactive) */}
+                      <div className={`absolute top-1.5 right-0.5 z-10 flex bg-surface-900/80 rounded-lg transition-opacity ${(isAppFavorite(friend) || isVrcFavorite(friend)) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                        <span
+                          className={`px-1 py-1 text-xs ${isVrcFavorite(friend) ? 'text-amber-400' : 'text-surface-600'}`}
+                          title="VRChat favorite"
+                        >★</span>
+                        <button type="button" onClick={(e) => toggleAppFavorite(friend, e)}
+                          className={`px-1 py-1 text-xs transition-colors ${isAppFavorite(friend) ? 'text-violet-400 hover:text-violet-300' : 'text-surface-600 hover:text-violet-400'}`}
+                          title={isAppFavorite(friend) ? 'Remove from app favorites' : 'Add to app favorites'}
+                        >{isAppFavorite(friend) ? '★' : '☆'}</button>
+                      </div>
                       <div className="relative">
                         <UserAvatar friend={friend} sizeClasses="w-14 h-14" />
                         {friend.isOnline != null && (
@@ -246,18 +253,22 @@ export default function Members() {
             <div className="flex-1 min-h-0">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 content-start">
                 {(lobby.users ?? []).map((u) => (
-                  <div key={u.name + (u.id_suffix || '')} className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.05] border border-transparent hover:border-surface-700 transition-colors text-center relative group">
-                    <button type="button" onDoubleClick={() => setProfileByName(u.name)} className="flex flex-col items-center gap-2 w-full" title="Double-click to open profile">
-                      <div className="relative">
-                        <UserAvatar friend={{ tags: [] }} sizeClasses="w-14 h-14" />
-                        <span className="absolute bottom-0 right-0 z-[1] w-3 h-3 rounded-full border-2 border-surface-900 bg-emerald-500" title="In instance" />
-                      </div>
-                      <span className="text-xs font-medium text-surface-200 truncate w-full" title={u.name}>{u.name}{u.id_suffix ? ` (${u.id_suffix})` : ''}</span>
-                    </button>
-                    <button type="button" onClick={async () => { try { const info = await api.userInfo(u.name); handleBlock({ id: info.id, displayName: info.displayName || u.name, display_name: info.displayName || u.name }); } catch { toast('Could not look up user.', 'error'); } }}
-                      className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded-lg text-[0.65rem] bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-opacity border border-red-500/20"
+                  <button
+                    key={u.name + (u.id_suffix || '')}
+                    type="button"
+                    onDoubleClick={() => setProfileByName(u.name)}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.05] border border-transparent hover:border-surface-700 transition-all text-center relative group"
+                    title="Double-click to open profile"
+                  >
+                    <div className="relative">
+                      <UserAvatar friend={{ tags: [] }} sizeClasses="w-14 h-14" />
+                      <span className="absolute bottom-0 right-0 z-[1] w-3 h-3 rounded-full border-2 border-surface-900 bg-emerald-500" title="In instance" />
+                    </div>
+                    <span className="text-xs font-medium text-surface-200 truncate w-full text-center leading-tight" title={u.name}>{u.name}{u.id_suffix ? ` (${u.id_suffix})` : ''}</span>
+                    <button type="button" onClick={async (e) => { e.stopPropagation(); try { const info = await api.userInfo(u.name); handleBlock({ id: info.id, displayName: info.displayName || u.name, display_name: info.displayName || u.name }); } catch { toast('Could not look up user.', 'error'); } }}
+                      className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[0.65rem] bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-opacity border border-red-500/20"
                     >Block</button>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -273,13 +284,13 @@ export default function Members() {
             <div className="flex-1 min-h-0">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 content-start">
                 {blocked.map((u) => (
-                  <div key={u.user_id} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-surface-800/20 border border-surface-700/40 text-center">
+                  <div key={u.user_id} className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.05] border border-surface-700/40 hover:border-surface-600 transition-all text-center relative group">
                     <UserAvatar friend={{ tags: [] }} sizeClasses="w-14 h-14" />
-                    <span className="text-xs font-medium text-surface-300 truncate w-full" title={u.display_name}>{u.display_name}</span>
+                    <span className="text-xs font-medium text-surface-300 truncate w-full leading-tight" title={u.display_name}>{u.display_name}</span>
                     {u.source && (
                       <span className="text-[0.6rem] uppercase tracking-wider text-surface-600">{u.source === 'vrchat' ? 'VRChat' : u.source}</span>
                     )}
-                    <button type="button" onClick={() => handleUnblock(u)} className="mt-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-700 hover:bg-surface-600 text-surface-200 w-full max-w-[8rem]">
+                    <button type="button" onClick={() => handleUnblock(u)} className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[0.65rem] bg-surface-700 hover:bg-surface-600 text-surface-200 transition-opacity w-full max-w-[7rem]">
                       Unblock
                     </button>
                   </div>

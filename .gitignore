@@ -23,15 +23,9 @@ installer_output/
 *.rar
 *.spec.bak
 
-# Local app data (generated on run)
-data/log.json
-data/group_cache.json
-data/user_ids.json
-data/vrchat_auth.db
-data/blocked_users.json
-data/app_favorites.json
-data/discord_config.json
-data/backup/
+# Local app data (generated on run — NEVER commit user data)
+data/
+!data/.gitkeep
 vrchat_auth.db
 
 # Frontend

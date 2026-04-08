@@ -80,11 +80,39 @@ def _user_to_card(user):
         current_avatar = getattr(current_avatar, "id", "") or ""
     if not isinstance(current_avatar, str):
         current_avatar = str(current_avatar) if current_avatar else ""
+    last_login = getattr(user, "last_login", None)
+    if hasattr(last_login, "isoformat"):
+        last_login = last_login.isoformat()
+    elif last_login is not None:
+        last_login = str(last_login)
+    date_joined = getattr(user, "date_joined", None)
+    if hasattr(date_joined, "isoformat"):
+        date_joined = date_joined.isoformat()
+    elif date_joined is not None:
+        date_joined = str(date_joined)
+    loc = getattr(user, "location", "") or ""
+    loc_l = str(loc).strip().lower()
+    is_online = getattr(user, "is_online", None)
+    if is_online is None:
+        is_online = getattr(user, "isOnline", None)
+    status_l = (getattr(user, "status", "") or "").lower()
+    if loc_l == "offline":
+        is_online = False
+    elif loc_l in ("private", "traveling") or (loc_l and ":" in loc_l):
+        is_online = True
+    elif status_l in ("active", "join me", "ask me", "busy"):
+        is_online = True
+    elif status_l == "offline":
+        is_online = False
+    elif is_online is None:
+        is_online = False
     return {
         "id": getattr(user, "id", ""),
         "displayName": getattr(user, "display_name", ""),
         "username": getattr(user, "username", ""),
         "bio": getattr(user, "bio", "") or "",
+        "bioLinks": list(getattr(user, "bio_links", None) or getattr(user, "bioLinks", None) or []),
+        "pronouns": getattr(user, "pronouns", "") or "",
         "currentAvatarImageUrl": getattr(user, "current_avatar_image_url", "") or "",
         "currentAvatar": current_avatar,
         "profilePicOverride": getattr(user, "profile_pic_override", "") or "",
@@ -96,9 +124,14 @@ def _user_to_card(user):
         "lastPlatform": getattr(user, "last_platform", "") or "Unknown",
         "status": getattr(user, "status", "") or "",
         "statusDescription": getattr(user, "status_description", "") or "",
-        "location": getattr(user, "location", "") or "",
+        "location": loc,
+        "isOnline": bool(is_online),
         "friendKey": getattr(user, "friend_key", "") or "",
         "ageVerified": "system_verified" in tag_strs,
+        "lastLogin": last_login or "",
+        "dateJoined": date_joined or "",
+        "note": getattr(user, "note", "") or "",
+        "state": getattr(user, "state", "") or "",
     }
 
 
@@ -1102,6 +1135,13 @@ def _merge_group_member_row(members_by_uid, m, role_map):
         ja = ja.isoformat()
     elif ja is not None:
         ja = str(ja)
+    avatar_url = ""
+    profile_pic = ""
+    user_icon = ""
+    if user:
+        avatar_url = getattr(user, "current_avatar_image_url", "") or getattr(user, "currentAvatarImageUrl", "") or ""
+        profile_pic = getattr(user, "profile_pic_override", "") or getattr(user, "profilePicOverride", "") or ""
+        user_icon = getattr(user, "user_icon", "") or getattr(user, "userIcon", "") or ""
     rec = {
         "id": getattr(m, "id", ""),
         "user_id": uid,
@@ -1110,6 +1150,9 @@ def _merge_group_member_row(members_by_uid, m, role_map):
         "membership_status": str(getattr(m, "membership_status", "") or ""),
         "role_ids": list(rids),
         "role_names": [role_map.get(str(x), str(x)) for x in rids],
+        "avatar_url": avatar_url,
+        "profile_pic": profile_pic,
+        "user_icon": user_icon,
     }
     if uid not in members_by_uid:
         members_by_uid[uid] = rec
@@ -1121,6 +1164,13 @@ def _merge_group_member_row(members_by_uid, m, role_map):
             old["role_ids"].append(rid)
             seen.add(str(rid))
     old["role_names"] = [role_map.get(str(x), str(x)) for x in old["role_ids"]]
+    # Keep first non-empty avatar data
+    if not old["avatar_url"] and avatar_url:
+        old["avatar_url"] = avatar_url
+    if not old["profile_pic"] and profile_pic:
+        old["profile_pic"] = profile_pic
+    if not old["user_icon"] and user_icon:
+        old["user_icon"] = user_icon
 
 
 def _fetch_all_group_members(group_id, role_map, groups_api):
@@ -1159,16 +1209,17 @@ def _fetch_all_group_members(group_id, role_map, groups_api):
     return list(members_by_uid.values())
 
 
-@app.get("/api/group")
-def api_group():
-    if not state.current_user:
-        return jsonify({"error": "not_authenticated"}), 401
-    group_id = get_setting("group_id", GROUP_ID)
-    if not group_id:
-        return jsonify({"error": "no_group_id", "group": None, "members": []}), 200
+# ─── In-memory group data cache (avoid blocking request thread on long fetches) ─
+_group_page_cache = {"data": None, "last_fetch": 0.0, "fetching": False}
+_GROUP_PAGE_CACHE_TTL = 300  # seconds before a background refresh is triggered
+
+
+def _refresh_group_page_cache_bg(group_id):
+    """Background thread: fetch full group data and populate _group_page_cache."""
+    global _group_page_cache
     try:
         if not state.groups_api_instance:
-            return jsonify({"error": "groups_api_unavailable", "group": None, "members": []}), 503
+            return
         group = state.groups_api_instance.get_group(group_id)
         group_data = {
             "id": getattr(group, "id", group_id),
@@ -1209,11 +1260,48 @@ def api_group():
                 "membership_status": str(getattr(my_m, "membership_status", "") or ""),
                 "role_ids": rids,
                 "role_names": [role_map.get(str(x), str(x)) for x in rids],
+                "avatar_url": "",
+                "profile_pic": "",
+                "user_icon": "",
             })
-        return jsonify({"group": group_data, "members": members, "roles": [{"id": k, "name": v} for k, v in role_map.items()]})
+        _group_page_cache["data"] = {
+            "group": group_data,
+            "members": members,
+            "roles": [{"id": k, "name": v} for k, v in role_map.items()],
+        }
+        _group_page_cache["last_fetch"] = time.time()
+        log_and_print(f"Group cache refreshed: {len(members)} members", "info")
     except Exception as e:
-        log_and_print(f"Group fetch error: {str(e)}", "error")
-        return jsonify({"error": str(e), "group": None, "members": []}), 500
+        log_and_print(f"Group cache refresh error: {e}", "error")
+    finally:
+        _group_page_cache["fetching"] = False
+
+
+@app.get("/api/group")
+def api_group():
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    group_id = get_setting("group_id", GROUP_ID)
+    if not group_id:
+        return jsonify({"error": "no_group_id", "group": None, "members": []}), 200
+    if not state.groups_api_instance:
+        return jsonify({"error": "groups_api_unavailable", "group": None, "members": []}), 503
+
+    now = time.time()
+    cache = _group_page_cache
+    stale = cache["data"] is None or (now - cache["last_fetch"]) >= _GROUP_PAGE_CACHE_TTL
+
+    # Kick off a background refresh if needed (non-blocking)
+    if stale and not cache["fetching"]:
+        cache["fetching"] = True
+        threading.Thread(target=_refresh_group_page_cache_bg, args=(group_id,), daemon=True).start()
+
+    if cache["data"]:
+        # Return cached data; include a flag so the frontend can show a subtle "refreshing" hint
+        return jsonify({**cache["data"], "loading": cache["fetching"]})
+
+    # Nothing in cache yet — tell the frontend to poll
+    return jsonify({"group": None, "members": [], "roles": [], "loading": True})
 
 
 @app.get("/api/blocked")
@@ -1273,6 +1361,56 @@ def api_blocked_remove(user_id):
     users = [u for u in _load_blocked_users() if u.get("user_id") != user_id]
     _save_blocked_users(users)
     return jsonify({"ok": True})
+
+
+@app.get("/api/favorite-groups")
+def api_favorite_groups():
+    """Return the logged-in user's VRChat-favorited groups with basic metadata."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        if not state.api_client:
+            return jsonify({"groups": []}), 200
+        from vrchatapi.api import favorites_api
+        fav_api = favorites_api.FavoritesApi(state.api_client)
+        fav_ids = []
+        offset = 0
+        n = 100
+        while True:
+            try:
+                batch = fav_api.get_favorites(n=n, offset=offset, type="group")
+            except Exception:
+                break
+            if not batch:
+                break
+            for x in batch:
+                gid = getattr(x, "favorite_id", None) or getattr(x, "favoriteId", None)
+                if gid:
+                    fav_ids.append(str(gid))
+            if len(batch) < n:
+                break
+            offset += n
+            time.sleep(0.2)
+        # Enrich with group metadata where possible
+        result = []
+        for gid in fav_ids:
+            entry = {"id": gid, "name": gid, "short_code": "", "member_count": 0, "icon_url": "", "banner_url": ""}
+            try:
+                if state.groups_api_instance:
+                    g = state.groups_api_instance.get_group(gid)
+                    entry["name"] = getattr(g, "name", "") or gid
+                    entry["short_code"] = getattr(g, "short_code", "") or ""
+                    entry["member_count"] = getattr(g, "member_count", 0) or 0
+                    entry["icon_url"] = getattr(g, "icon_url", "") or getattr(g, "icon", "") or ""
+                    entry["banner_url"] = getattr(g, "banner_url", "") or getattr(g, "banner", "") or ""
+                    time.sleep(0.2)
+            except Exception:
+                pass
+            result.append(entry)
+        return jsonify({"groups": result})
+    except Exception as e:
+        log_and_print(f"Favorite groups error: {e}", "debug")
+        return jsonify({"groups": []}), 200
 
 
 @app.post("/api/remove-friend")
@@ -1966,6 +2104,493 @@ def api_invite_event():
         return jsonify({"error": str(e)}), 500
 
 
+# ── VRChat API proxy endpoints ──────────────────────────────────────────────
+# These expose raw VRChat API data to the frontend for richer user profiles,
+# world info, notifications, and moderation tools.
+
+@app.get("/api/world/<world_id>")
+def api_get_world(world_id):
+    """Get info about a VRChat world by ID."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import worlds_api as wa
+        w_api = wa.WorldsApi(state.api_client)
+        world = w_api.get_world(world_id)
+        return jsonify({
+            "id": getattr(world, "id", ""),
+            "name": getattr(world, "name", ""),
+            "description": getattr(world, "description", "") or "",
+            "authorId": getattr(world, "author_id", ""),
+            "authorName": getattr(world, "author_name", ""),
+            "imageUrl": getattr(world, "image_url", "") or "",
+            "thumbnailImageUrl": getattr(world, "thumbnail_image_url", "") or "",
+            "capacity": getattr(world, "capacity", 0),
+            "recommendedCapacity": getattr(world, "recommended_capacity", 0),
+            "occupants": getattr(world, "occupants", 0),
+            "publicOccupants": getattr(world, "public_occupants", 0),
+            "privateOccupants": getattr(world, "private_occupants", 0),
+            "visits": getattr(world, "visits", 0),
+            "favorites": getattr(world, "favorites", 0),
+            "heat": getattr(world, "heat", 0),
+            "popularity": getattr(world, "popularity", 0),
+            "tags": list(getattr(world, "tags", []) or []),
+            "releaseStatus": getattr(world, "release_status", ""),
+            "version": getattr(world, "version", 0),
+            "created_at": str(getattr(world, "created_at", "")),
+            "updated_at": str(getattr(world, "updated_at", "")),
+            "labsPublicationDate": str(getattr(world, "labs_publication_date", "") or ""),
+            "publicationDate": str(getattr(world, "publication_date", "") or ""),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/world/<world_id>/instance/<instance_id>")
+def api_get_instance(world_id, instance_id):
+    """Get info about a specific world instance."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import instances_api as ia
+        i_api = ia.InstancesApi(state.api_client)
+        inst = i_api.get_instance(world_id, instance_id)
+        users = []
+        for u in (getattr(inst, "users", []) or []):
+            users.append({
+                "id": getattr(u, "id", ""),
+                "displayName": getattr(u, "display_name", ""),
+                "currentAvatarImageUrl": getattr(u, "current_avatar_image_url", "") or "",
+            })
+        return jsonify({
+            "instanceId": getattr(inst, "instance_id", ""),
+            "worldId": getattr(inst, "world_id", ""),
+            "name": getattr(inst, "name", ""),
+            "type": getattr(inst, "type", ""),
+            "region": str(getattr(inst, "region", "")),
+            "ownerId": getattr(inst, "owner_id", "") or "",
+            "capacity": getattr(inst, "capacity", 0),
+            "recommendedCapacity": getattr(inst, "recommended_capacity", 0),
+            "userCount": getattr(inst, "user_count", 0) or getattr(inst, "n_users", 0),
+            "full": getattr(inst, "full", False),
+            "active": getattr(inst, "active", True),
+            "users": users,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/notifications")
+def api_get_notifications():
+    """List recent VRChat notifications for the current user."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import notifications_api as na
+        n_api = na.NotificationsApi(state.api_client)
+        notifs = n_api.get_notifications(hidden="false")
+        items = []
+        for n in (notifs or []):
+            items.append({
+                "id": getattr(n, "id", ""),
+                "type": getattr(n, "type", ""),
+                "senderUserId": getattr(n, "sender_user_id", ""),
+                "senderUsername": getattr(n, "sender_username", ""),
+                "message": getattr(n, "message", "") or "",
+                "details": str(getattr(n, "details", "") or ""),
+                "created_at": str(getattr(n, "created_at", "")),
+                "seen": getattr(n, "seen", False),
+            })
+        return jsonify({"notifications": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/notifications/<notif_id>/accept")
+def api_accept_notification(notif_id):
+    """Accept a VRChat notification (friend request, invite, etc.)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import notifications_api as na
+        n_api = na.NotificationsApi(state.api_client)
+        n_api.accept_friend_request(notif_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.delete("/api/notifications/<notif_id>")
+def api_delete_notification(notif_id):
+    """Mark a notification as read / delete it."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import notifications_api as na
+        n_api = na.NotificationsApi(state.api_client)
+        n_api.mark_notification_as_read(notif_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/friend-status/<user_id>")
+def api_friend_status(user_id):
+    """Check friend status with a user."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import friends_api as fa
+        f_api = fa.FriendsApi(state.api_client)
+        status = f_api.get_friend_status(user_id)
+        return jsonify({
+            "isFriend": getattr(status, "is_friend", False),
+            "outgoingRequest": getattr(status, "outgoing_request", False),
+            "incomingRequest": getattr(status, "incoming_request", False),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/friend-request/<user_id>")
+def api_send_friend_request(user_id):
+    """Send a friend request to a user."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import friends_api as fa
+        f_api = fa.FriendsApi(state.api_client)
+        f_api.friend(user_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/player-moderations")
+def api_player_moderations():
+    """List all current user's player moderations (blocks, mutes, etc.)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import playermoderation_api as pma
+        pm_api = pma.PlayermoderationApi(state.api_client)
+        mods = pm_api.get_player_moderations()
+        items = []
+        for m in (mods or []):
+            items.append({
+                "id": getattr(m, "id", ""),
+                "type": str(getattr(m, "type", "")),
+                "sourceUserId": getattr(m, "source_user_id", ""),
+                "sourceDisplayName": getattr(m, "source_display_name", ""),
+                "targetUserId": getattr(m, "target_user_id", ""),
+                "targetDisplayName": getattr(m, "target_display_name", ""),
+                "created": str(getattr(m, "created", "")),
+            })
+        return jsonify({"moderations": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/player-moderations")
+def api_create_player_moderation():
+    """Create a player moderation (block, mute, hide avatar)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    data = request.get_json(silent=True) or {}
+    target_id = data.get("targetUserId", "")
+    mod_type = data.get("type", "")
+    if not target_id or not mod_type:
+        return jsonify({"error": "targetUserId and type required"}), 400
+    try:
+        from vrchatapi.api import playermoderation_api as pma
+        from vrchatapi.models.moderate_user_request import ModerateUserRequest
+        from vrchatapi.models.player_moderation_type import PlayerModerationType
+        pm_api = pma.PlayermoderationApi(state.api_client)
+        type_map = {
+            "block": PlayerModerationType.BLOCK,
+            "mute": PlayerModerationType.MUTE,
+            "hideAvatar": PlayerModerationType.HIDEAVATAR,
+        }
+        pm_type = type_map.get(mod_type)
+        if not pm_type:
+            return jsonify({"error": f"Invalid type. Use: {list(type_map.keys())}"}), 400
+        pm_api.moderate_user(ModerateUserRequest(moderated=target_id, type=pm_type))
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.delete("/api/player-moderations/<mod_id>")
+def api_delete_player_moderation(mod_id):
+    """Remove a player moderation by ID."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import playermoderation_api as pma
+        pm_api = pma.PlayermoderationApi(state.api_client)
+        pm_api.unmoderate_user(mod_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/group/<group_id>/announcement")
+def api_group_announcement(group_id):
+    """Get the latest announcement for a group."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        ann = state.groups_api_instance.get_group_announcement(group_id)
+        if not ann:
+            return jsonify({"announcement": None})
+        return jsonify({
+            "announcement": {
+                "id": getattr(ann, "id", ""),
+                "groupId": getattr(ann, "group_id", ""),
+                "authorId": getattr(ann, "author_id", ""),
+                "title": getattr(ann, "title", "") or "",
+                "text": getattr(ann, "text", "") or "",
+                "imageId": getattr(ann, "image_id", "") or "",
+                "imageUrl": getattr(ann, "image_url", "") or "",
+                "created_at": str(getattr(ann, "created_at", "")),
+                "updated_at": str(getattr(ann, "updated_at", "")),
+            }
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/group/<group_id>/bans")
+def api_group_bans(group_id):
+    """List group bans."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        bans = state.groups_api_instance.get_group_bans(group_id, n=100, offset=0)
+        items = []
+        for b in (bans or []):
+            items.append({
+                "id": getattr(b, "id", ""),
+                "groupId": getattr(b, "group_id", ""),
+                "bannedUserId": getattr(b, "user_id", "") or getattr(b, "banned_user_id", ""),
+                "bannedByUserId": getattr(b, "banned_by_user_id", "") or "",
+                "created_at": str(getattr(b, "created_at", "")),
+            })
+        return jsonify({"bans": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.delete("/api/group/<group_id>/bans/<user_id>")
+def api_unban_group_member(group_id, user_id):
+    """Unban a user from a group."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        state.groups_api_instance.unban_group_member(group_id, user_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/group/<group_id>/posts")
+def api_group_posts(group_id):
+    """List recent group posts."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        posts = state.groups_api_instance.get_group_posts(group_id, n=20, offset=0)
+        items = []
+        for p in (posts or []):
+            items.append({
+                "id": getattr(p, "id", ""),
+                "authorId": getattr(p, "author_id", ""),
+                "title": getattr(p, "title", "") or "",
+                "text": getattr(p, "text", "") or "",
+                "imageId": getattr(p, "image_id", "") or "",
+                "imageUrl": getattr(p, "image_url", "") or "",
+                "visibility": str(getattr(p, "visibility", "")),
+                "created_at": str(getattr(p, "created_at", "")),
+                "updated_at": str(getattr(p, "updated_at", "")),
+            })
+        return jsonify({"posts": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/search/users")
+def api_search_users():
+    """Search VRChat users by name."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"users": []})
+    try:
+        results = state.users_api_instance.search_users(search=q, n=20)
+        users = [_user_to_card(u) for u in (results or [])]
+        return jsonify({"users": users})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/search/worlds")
+def api_search_worlds():
+    """Search VRChat worlds by name."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"worlds": []})
+    try:
+        from vrchatapi.api import worlds_api as wa
+        w_api = wa.WorldsApi(state.api_client)
+        results = w_api.search_worlds(search=q, n=20)
+        worlds = []
+        for w in (results or []):
+            worlds.append({
+                "id": getattr(w, "id", ""),
+                "name": getattr(w, "name", ""),
+                "authorName": getattr(w, "author_name", ""),
+                "imageUrl": getattr(w, "image_url", "") or "",
+                "thumbnailImageUrl": getattr(w, "thumbnail_image_url", "") or "",
+                "capacity": getattr(w, "capacity", 0),
+                "occupants": getattr(w, "occupants", 0),
+                "favorites": getattr(w, "favorites", 0),
+                "tags": list(getattr(w, "tags", []) or []),
+                "releaseStatus": getattr(w, "release_status", ""),
+            })
+        return jsonify({"worlds": worlds})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/avatar/<avatar_id>")
+def api_get_avatar(avatar_id):
+    """Get info about a specific avatar."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import avatars_api as aa
+        a_api = aa.AvatarsApi(state.api_client)
+        av = a_api.get_avatar(avatar_id)
+        return jsonify({
+            "id": getattr(av, "id", ""),
+            "name": getattr(av, "name", ""),
+            "description": getattr(av, "description", "") or "",
+            "authorId": getattr(av, "author_id", ""),
+            "authorName": getattr(av, "author_name", ""),
+            "imageUrl": getattr(av, "image_url", "") or "",
+            "thumbnailImageUrl": getattr(av, "thumbnail_image_url", "") or "",
+            "releaseStatus": getattr(av, "release_status", ""),
+            "tags": list(getattr(av, "tags", []) or []),
+            "version": getattr(av, "version", 0),
+            "created_at": str(getattr(av, "created_at", "")),
+            "updated_at": str(getattr(av, "updated_at", "")),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/invite/<user_id>")
+def api_invite_user(user_id):
+    """Invite a user to the current instance."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    data = request.get_json(silent=True) or {}
+    instance_id = data.get("instanceId", "")
+    world_id = data.get("worldId", "")
+    if not instance_id or not world_id:
+        return jsonify({"error": "instanceId and worldId required"}), 400
+    try:
+        from vrchatapi.api import invite_api as inv_a
+        from vrchatapi.models.invite_request import InviteRequest
+        i_api = inv_a.InviteApi(state.api_client)
+        i_api.invite_user(user_id, InviteRequest(instance_id=f"{world_id}:{instance_id}"))
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/favorites")
+def api_get_favorites():
+    """List current user's VRChat favorites (worlds, avatars, friends)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    fav_type = request.args.get("type", "")  # friend, world, avatar
+    try:
+        from vrchatapi.api import favorites_api as fav_a
+        f_api = fav_a.FavoritesApi(state.api_client)
+        favs = f_api.get_favorites(n=100, type=fav_type) if fav_type else f_api.get_favorites(n=100)
+        items = []
+        for f in (favs or []):
+            items.append({
+                "id": getattr(f, "id", ""),
+                "type": str(getattr(f, "type", "")),
+                "favoriteId": getattr(f, "favorite_id", ""),
+                "tags": list(getattr(f, "tags", []) or []),
+            })
+        return jsonify({"favorites": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/favorites")
+def api_add_favorite():
+    """Add a favorite (world, avatar, or friend)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    data = request.get_json(silent=True) or {}
+    fav_type = data.get("type", "")
+    fav_id = data.get("favoriteId", "")
+    fav_tags = data.get("tags", [])
+    if not fav_type or not fav_id:
+        return jsonify({"error": "type and favoriteId required"}), 400
+    try:
+        from vrchatapi.api import favorites_api as fav_a
+        from vrchatapi.models.add_favorite_request import AddFavoriteRequest
+        f_api = fav_a.FavoritesApi(state.api_client)
+        f_api.add_favorite(AddFavoriteRequest(type=fav_type, favorite_id=fav_id, tags=fav_tags))
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.delete("/api/favorites/<fav_id>")
+def api_remove_favorite(fav_id):
+    """Remove a favorite."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import favorites_api as fav_a
+        f_api = fav_a.FavoritesApi(state.api_client)
+        f_api.remove_favorite(fav_id)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/current-user/permissions")
+def api_current_user_permissions():
+    """Get the current user's permissions."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    try:
+        from vrchatapi.api import permissions_api as perm_a
+        p_api = perm_a.PermissionsApi(state.api_client)
+        perms = p_api.get_assigned_permissions()
+        items = []
+        for p in (perms or []):
+            items.append({
+                "id": getattr(p, "id", ""),
+                "name": getattr(p, "name", ""),
+                "ownerDisplayName": getattr(p, "owner_display_name", "") or "",
+            })
+        return jsonify({"permissions": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.errorhandler(500)
 @app.errorhandler(404)
 @app.errorhandler(Exception)
@@ -2066,7 +2691,7 @@ def start_web_ui():
     # When launched from Electron, skip pywebview – Electron provides the window.
     if os.environ.get("ELECTRON_MODE") == "1":
         log_and_print("ELECTRON_MODE=1: running Flask only, skipping pywebview", "info")
-        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False, threaded=True)
         return
 
     try:
@@ -2074,7 +2699,7 @@ def start_web_ui():
         from . import tray_helper
 
         def run_flask():
-            app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+            app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False, threaded=True)
 
         server_thread = threading.Thread(target=run_flask, daemon=True)
         server_thread.start()
@@ -2129,4 +2754,4 @@ def start_web_ui():
             time.sleep(1.5)
             webbrowser.open(url)
         threading.Thread(target=open_browser, daemon=True).start()
-        app.run(host="127.0.0.1", port=port, debug=False)
+        app.run(host="127.0.0.1", port=port, debug=False, threaded=True)

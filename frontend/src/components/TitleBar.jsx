@@ -26,7 +26,7 @@ export default function TitleBar() {
       {/* App name pill */}
       <div className="flex items-center gap-2 px-4 h-full" style={{ WebkitAppRegion: 'drag' }}>
         <img
-          src="/assets/vrchat%20legends/vrchat_legends_logo_round.png"
+          src="/assets/branding/group_tool_icon.png"
           alt=""
           className="h-4 w-4 rounded object-cover opacity-80"
         />

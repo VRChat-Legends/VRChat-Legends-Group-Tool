@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
-const LOGO = '/assets/vrchat%20legends/vrchat_legends_logo_round.png';
+const LOGO = '/assets/branding/group_tool_icon.png';
 
 const NAV = [
   {

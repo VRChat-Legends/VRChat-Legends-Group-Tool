@@ -38,14 +38,17 @@ def _friend_to_dict(f):
     if is_online is None:
         is_online = getattr(f, "isOnline", None)
     status_l = (getattr(f, "status", "") or "").lower()
-    if loc_l in ("offline", "private"):
+    if loc_l == "offline":
+        is_online = False
+    elif loc_l in ("private", "traveling") or (loc_l and ":" in loc_l):
+        # "private" = in game but location hidden; "traveling" = switching worlds; "wrld_xxx:..." = in world
+        is_online = True
+    elif status_l in ("active", "join me", "ask me", "busy"):
+        is_online = True
+    elif status_l == "offline":
         is_online = False
     elif is_online is None:
-        if status_l in ("offline", "hidden"):
-            is_online = False
-        else:
-            # In a public/private world instance string → online; empty unknown → offline
-            is_online = bool(loc_l and loc_l not in ("offline", "private"))
+        is_online = False
     _, trust_display = trust_rank_from_tags(tags)
     return {
         "id": getattr(f, "id", ""),

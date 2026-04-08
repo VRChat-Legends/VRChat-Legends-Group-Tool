@@ -1,6 +1,6 @@
 """
-Build app icon (ICO) from logo PNG for PyInstaller. Embeds in exe; no separate file at runtime.
-Run from project root. Writes app_icon.ico next to this script.
+Build app icon (ICO) from the branding PNG for PyInstaller.
+Run from anywhere inside the repo. Writes `app_icon.ico` to the project root.
 """
 import os
 import sys
@@ -12,12 +12,15 @@ def main():
         print("Install Pillow for icon build: pip install Pillow", file=sys.stderr)
         sys.exit(1)
 
-    root = os.path.dirname(os.path.abspath(__file__))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
     candidates = [
-        os.path.join(root, "assets", "vrchat legends", "vrchat_legends_logo_round.png"),
-        os.path.join(root, "assets", "vrchat", "9_Paws.png"),
-        os.path.join(root, "frontend", "public", "assets", "vrchat legends", "vrchat_legends_logo_round.png"),
-        os.path.join(root, "logo.png"),
+        os.path.join(project_root, "assets", "branding", "group_tool_icon.png"),
+        os.path.join(project_root, "frontend", "public", "assets", "branding", "group_tool_icon.png"),
+        os.path.join(project_root, "assets", "vrchat legends", "vrchat_legends_logo_round.png"),
+        os.path.join(project_root, "assets", "vrchat", "9_Paws.png"),
+        os.path.join(project_root, "frontend", "public", "assets", "vrchat legends", "vrchat_legends_logo_round.png"),
+        os.path.join(project_root, "logo.png"),
     ]
     src = None
     for p in candidates:
@@ -36,7 +39,7 @@ def main():
 
     # ICO needs multiple sizes; Windows uses 16, 32, 48, 256
     sizes = [(16, 16), (32, 32), (48, 48), (256, 256)]
-    out_path = os.path.join(root, "app_icon.ico")
+    out_path = os.path.join(project_root, "app_icon.ico")
     img.save(out_path, format="ICO", sizes=sizes)
     print("Wrote", out_path)
     return 0
