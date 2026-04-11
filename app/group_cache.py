@@ -14,35 +14,45 @@ CACHE_FILE = os.path.join(DATA_DIR, "group_cache.json")
 # Thread-safe cache
 cache_lock = threading.Lock()
 cached_member_count = None
+cached_group_name = None
+cached_group_short_code = None
 last_update = None
 cache_thread = None
 
 
 def load_cache():
     """Load cached group member count from file"""
-    global cached_member_count, last_update
+    global cached_member_count, cached_group_name, cached_group_short_code, last_update
     try:
         if os.path.exists(CACHE_FILE):
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 with cache_lock:
                     cached_member_count = data.get("member_count")
+                    cached_group_name = data.get("name")
+                    cached_group_short_code = data.get("short_code")
                     last_update = data.get("last_update")
                 log_and_print(f"Group cache loaded: {cached_member_count} members", "info")
     except Exception as e:
         log_and_print(f"Group cache load error: {str(e)}", "error")
 
 
-def save_cache(member_count):
-    """Save group member count to cache file"""
-    global cached_member_count, last_update
+def save_cache(member_count, name=None, short_code=None):
+    """Save group data to cache file"""
+    global cached_member_count, cached_group_name, cached_group_short_code, last_update
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
         with cache_lock:
             cached_member_count = member_count
+            if name is not None:
+                cached_group_name = name
+            if short_code is not None:
+                cached_group_short_code = short_code
             last_update = datetime.utcnow().isoformat()
             data = {
                 "member_count": cached_member_count,
+                "name": cached_group_name,
+                "short_code": cached_group_short_code,
                 "last_update": last_update
             }
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
@@ -55,6 +65,16 @@ def get_cached_member_count():
     """Get cached group member count (never returns None/blank)"""
     with cache_lock:
         return cached_member_count if cached_member_count is not None else 0
+
+
+def get_cached_group_data():
+    """Get cached group data dict (name, short_code, member_count)."""
+    with cache_lock:
+        return {
+            "name": cached_group_name or "",
+            "short_code": cached_group_short_code or "",
+            "member_count": cached_member_count if cached_member_count is not None else 0,
+        }
 
 
 def update_group_cache():
@@ -71,9 +91,11 @@ def update_group_cache():
         
         group = state.groups_api_instance.get_group(group_id)
         member_count = getattr(group, "member_count", 0)
+        name = getattr(group, "name", "") or ""
+        short_code = getattr(group, "short_code", "") or ""
         
         if member_count > 0:
-            save_cache(member_count)
+            save_cache(member_count, name=name, short_code=short_code)
             log_and_print(f"Group cache updated: {member_count} members", "debug")
         
     except Exception as e:

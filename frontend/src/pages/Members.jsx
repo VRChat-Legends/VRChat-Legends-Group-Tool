@@ -49,13 +49,13 @@ function PersonTile({ user, onClick, onBlock, onUnblock, isAppFav, isVrcFav, onT
       {variant === 'friend' && (
         <div className={`absolute top-1.5 right-1.5 z-10 flex rounded-lg overflow-hidden transition-opacity ${(isAppFav || isVrcFav) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
              style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-          <span className={`px-1 py-1 text-xs ${isVrcFav ? 'text-amber-400' : 'text-slate-600'}`} title="VRChat favorite">★</span>
+          <span className={`px-1.5 py-1 text-xs ${isVrcFav ? 'text-amber-400' : 'text-slate-600'}`} title="VRChat favorite"><i className={`${isVrcFav ? 'fas' : 'far'} fa-heart`} /></span>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleAppFav?.(e); }}
-            className={`px-1 py-1 text-xs transition-colors ${isAppFav ? 'text-violet-400 hover:text-violet-300' : 'text-slate-600 hover:text-violet-400'}`}
+            className={`px-1.5 py-1 text-xs transition-colors ${isAppFav ? 'text-violet-400 hover:text-violet-300' : 'text-slate-600 hover:text-violet-400'}`}
             title={isAppFav ? 'Remove from app favorites' : 'Add to app favorites'}
-          >{isAppFav ? '★' : '☆'}</button>
+          ><i className={`${isAppFav ? 'fas' : 'far'} fa-star`} /></button>
         </div>
       )}
 
@@ -316,7 +316,7 @@ export default function Members() {
   ];
 
   /* ── helpers ───────────────────────────────────────────────── */
-  const sectionClass = 'flex-1 min-h-0 flex flex-col animate-in';
+  const sectionClass = 'flex-1 min-h-0 flex flex-col animate-in w-full';
 
   const EmptyState = ({ message }) => (
     <div className="flex-1 flex flex-col items-center justify-center py-16 text-center">
@@ -337,7 +337,7 @@ export default function Members() {
 
   /* ── render ─────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1 min-h-0 w-full">
       {/* Page header */}
       <div className="page-hero">
         <h1 className="page-hero-title">
@@ -405,7 +405,7 @@ export default function Members() {
               />
               <FilterBar filters={FRIEND_FILTERS} active={filterTab} onSelect={(id) => { setFilterTab(id); setPage(1); }} />
               {filteredFriends.length === 0 ? (
-                <EmptyState message={friends.length === 0 ? "No friends cached yet — wait for next refresh." : "No friends match your search."} />
+                <EmptyState message={friends.length === 0 ? "No friends cached yet, wait for next refresh." : "No friends match your search."} />
               ) : (
                 <>
                   <GridWrap>

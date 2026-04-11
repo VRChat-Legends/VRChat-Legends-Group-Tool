@@ -15,7 +15,7 @@ export default function Moderation() {
   const TabComponent = TABS.find((t) => t.id === tab)?.component || Activity;
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 animate-in">
+    <div className="flex flex-col flex-1 min-h-0 animate-in w-full">
       <div className="flex gap-2 mb-4 flex-shrink-0">
         {TABS.map(({ id, label }) => (
           <button

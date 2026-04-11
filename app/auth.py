@@ -154,7 +154,7 @@ def set_setting(key, value):
     conn.close()
 
 
-SENSITIVE_KEYS = frozenset({"discord_bot_token_enc", "openai_api_key_enc"})
+SENSITIVE_KEYS = frozenset({"discord_bot_token_enc", "gemini_api_key_enc"})
 
 
 def list_all_settings():

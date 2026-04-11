@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Terms() {
   return (
-    <div className="max-w-3xl mx-auto animate-in py-2">
+    <div className="animate-in w-full py-2">
       <h1 className="text-2xl font-bold text-surface-100 mb-2">Terms of Service</h1>
       <p className="text-surface-500 text-sm mb-8">VRChat Legends Group Tool (local application)</p>
 

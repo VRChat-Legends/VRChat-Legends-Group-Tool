@@ -87,9 +87,9 @@ export default function FriendUserCard({ userId, displayName: initialName, onClo
 
   if (!userId) return null;
 
-  const name = user?.displayName ?? user?.display_name ?? initialName ?? '—';
+  const name = user?.displayName ?? user?.display_name ?? initialName ?? '';
   const username = user?.username ?? '';
-  const trustRank = user?.trustRankDisplayName ?? user?.trust_rank_display_name ?? user?.trustRank ?? user?.trust_rank ?? '—';
+  const trustRank = user?.trustRankDisplayName ?? user?.trust_rank_display_name ?? user?.trustRank ?? user?.trust_rank ?? '';
   const bio = user?.bio ?? '';
   const pronouns = user?.pronouns ?? '';
   const tags = user?.tags || [];
@@ -172,13 +172,13 @@ export default function FriendUserCard({ userId, displayName: initialName, onClo
               ) : (
                 <>
                   <h2 className="font-bold text-lg text-white truncate leading-tight">{name}</h2>
-                  <p className="text-sm text-surface-400">@{username || '—'}{pronouns ? ` · ${pronouns}` : ''}</p>
+                  <p className="text-sm text-surface-400">{username ? `@${username}` : ''}{pronouns ? ` · ${pronouns}` : ''}</p>
 
                   {/* Status line */}
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <span className={`w-2 h-2 rounded-full ${statusDot}`} />
                     <span className="text-xs text-surface-300">{statusLabel}</span>
-                    {statusDesc && <span className="text-xs text-surface-500 truncate">— {statusDesc}</span>}
+                    {statusDesc && <span className="text-xs text-surface-500 truncate">· {statusDesc}</span>}
                   </div>
 
                   {/* Badges row */}

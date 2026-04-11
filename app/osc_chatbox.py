@@ -142,8 +142,15 @@ def process_chatbox_tags(text):
     now = datetime.now()
     text = text.replace("{time}", now.strftime("%H:%M:%S"))
     text = text.replace("{time_12}", now.strftime("%I:%M:%S %p"))
+    text = text.replace("{time_short}", now.strftime("%H:%M"))
+    text = text.replace("{time_12_short}", now.strftime("%I:%M %p"))
     text = text.replace("{date}", now.strftime("%Y-%m-%d"))
     text = text.replace("{date_short}", now.strftime("%m/%d"))
+    text = text.replace("{date_long}", now.strftime("%B %d, %Y"))
+    text = text.replace("{day_of_week}", now.strftime("%A"))
+    text = text.replace("{day_short}", now.strftime("%a"))
+    text = text.replace("{month}", now.strftime("%B"))
+    text = text.replace("{year}", str(now.year))
     
     # Active time (bot uptime - how long the app has been running)
     elapsed = time.time() - getattr(state, "app_start_time", time.time())
@@ -162,6 +169,39 @@ def process_chatbox_tags(text):
         m, _ = divmod(r, 60)
         active_str = f"{d}d {h}h {m}m"
     text = text.replace("{active_time}", active_str)
+
+    # Uptime short (e.g. "2h 15m" without seconds)
+    if elapsed < 60:
+        uptime_short = "<1m"
+    elif elapsed < 3600:
+        uptime_short = f"{int(elapsed // 60)}m"
+    elif elapsed < 86400:
+        uptime_short = f"{int(elapsed // 3600)}h {int((elapsed % 3600) // 60)}m"
+    else:
+        uptime_short = f"{int(elapsed // 86400)}d {int((elapsed % 86400) // 3600)}h"
+    text = text.replace("{uptime_short}", uptime_short)
+
+    # Friends info
+    try:
+        from .friends_cache import get_cached_friends
+        friends_data = get_cached_friends()
+        online = sum(1 for f in friends_data if (f.get("status") or "offline") != "offline")
+        total = len(friends_data)
+        text = text.replace("{friends_online}", str(online))
+        text = text.replace("{friends_total}", str(total))
+    except Exception:
+        text = text.replace("{friends_online}", "0")
+        text = text.replace("{friends_total}", "0")
+
+    # Group name / short code
+    try:
+        from .group_cache import get_cached_group_data
+        gd = get_cached_group_data() or {}
+        text = text.replace("{group_name}", str(gd.get("name") or ""))
+        text = text.replace("{group_short_code}", str(gd.get("short_code") or ""))
+    except Exception:
+        text = text.replace("{group_name}", "")
+        text = text.replace("{group_short_code}", "")
     
     # User info
     if state.current_user:
@@ -172,19 +212,19 @@ def process_chatbox_tags(text):
         _, tr_disp = trust_rank_from_tags(tags)
         text = text.replace("{trust_rank}", tr_disp)
         st = getattr(u, "status", "") or ""
-        text = text.replace("{user_status}", str(st) or "—")
+        text = text.replace("{user_status}", str(st) or "")
         sd = getattr(u, "status_description", "") or ""
-        text = text.replace("{status_description}", str(sd) or "—")
+        text = text.replace("{status_description}", str(sd) or "")
         bio = getattr(u, "bio", "") or ""
         bio_s = bio.replace("\n", " ").strip()
         if len(bio_s) > 100:
-            bio_s = bio_s[:97] + "…"
-        text = text.replace("{bio_short}", bio_s or "—")
+            bio_s = bio_s[:97] + "..."
+        text = text.replace("{bio_short}", bio_s or "")
     else:
         text = text.replace("{username}", "Not logged in")
         text = text.replace("{display_name}", "Not logged in")
         for tag in ("{trust_rank}", "{user_status}", "{status_description}", "{bio_short}"):
-            text = text.replace(tag, "—")
+            text = text.replace(tag, "")
 
     with state.state_lock:
         pending_fr = state.pending_friend_requests
@@ -198,43 +238,39 @@ def process_chatbox_tags(text):
         names = ", ".join(
             str(u.get("name") or u.get("displayName") or "?") for u in lobby_users[:48]
         )
-        text = text.replace("{lobby_names}", names or "—")
-        text = text.replace("{lobby_list}", names or "—")
+        text = text.replace("{lobby_names}", names or "None")
+        text = text.replace("{lobby_list}", names or "None")
 
     # Current world (from logged-in user's location)
+    _WORLD_TAGS = (
+        "{world_name}", "{world_author}", "{world_id}", "{instance}",
+        "{world_visits}", "{world_capacity}", "{world_heat}",
+        "{world_release}", "{world_description}",
+    )
     try:
         client = getattr(state, "api_client", None)
         loc = getattr(state.current_user, "location", "") if state.current_user else ""
         wd = world_detail_from_location(client, loc) if client else None
         if wd:
-            text = text.replace("{world_name}", str(wd.get("name") or "—"))
-            text = text.replace("{world_author}", str(wd.get("author_name") or "—"))
-            text = text.replace("{world_id}", str(wd.get("world_id") or "—"))
-            text = text.replace("{instance}", str(wd.get("instance") or "—"))
-            text = text.replace("{world_visits}", str(wd.get("visits") if wd.get("visits") is not None else "—"))
-            text = text.replace("{world_capacity}", str(wd.get("capacity") if wd.get("capacity") is not None else "—"))
-            text = text.replace("{world_heat}", str(wd.get("heat") if wd.get("heat") is not None else "—"))
-            rel = str(wd.get("release_status") or wd.get("releaseStatus") or "—")
+            text = text.replace("{world_name}", str(wd.get("name") or ""))
+            text = text.replace("{world_author}", str(wd.get("author_name") or ""))
+            text = text.replace("{world_id}", str(wd.get("world_id") or ""))
+            text = text.replace("{instance}", str(wd.get("instance") or ""))
+            text = text.replace("{world_visits}", str(wd.get("visits") if wd.get("visits") is not None else ""))
+            text = text.replace("{world_capacity}", str(wd.get("capacity") if wd.get("capacity") is not None else ""))
+            text = text.replace("{world_heat}", str(wd.get("heat") if wd.get("heat") is not None else ""))
+            rel = str(wd.get("release_status") or wd.get("releaseStatus") or "")
             text = text.replace("{world_release}", rel)
             desc = (wd.get("description") or "").replace("\n", " ").strip()
             if len(desc) > 120:
-                desc = desc[:117] + "…"
-            text = text.replace("{world_description}", desc or "—")
+                desc = desc[:117] + "..."
+            text = text.replace("{world_description}", desc or "")
         else:
-            for tag in (
-                "{world_name}",
-                "{world_author}",
-                "{world_id}",
-                "{instance}",
-                "{world_visits}",
-                "{world_capacity}",
-                "{world_heat}",
-                "{world_release}",
-                "{world_description}",
-            ):
-                text = text.replace(tag, "—")
+            for tag in _WORLD_TAGS:
+                text = text.replace(tag, "")
     except Exception:
-        pass
+        for tag in _WORLD_TAGS:
+            text = text.replace(tag, "")
     
     # Group member count (use cached value, never blank)
     try:
@@ -247,6 +283,16 @@ def process_chatbox_tags(text):
     # Divider (14 chars for in-game chatbox width)
     text = text.replace("{divider}", "─" * 14)
     text = text.replace("{line}", "─" * 30)
+    text = text.replace("{dots}", "·" * 14)
+    text = text.replace("{stars}", "★" * 7)
+    text = text.replace("{hearts}", "♥" * 7)
+    text = text.replace("{space}", " ")
+    text = text.replace("{blank}", "")
+
+    # Random emoji
+    import random
+    _EMOJIS = ["✨", "💫", "⭐", "🌟", "🔥", "💖", "🎮", "🎵", "🌈", "☀️", "🌙", "❄️", "🍀", "🎲", "🦋", "🐾", "💜", "💙", "💚", "🧡"]
+    text = text.replace("{random_emoji}", random.choice(_EMOJIS))
 
     # Newline
     text = text.replace("{newline}", "\n")

@@ -73,7 +73,7 @@ export default function UserProfileModal({ displayName, onClose, inWorld = true 
   const name = user?.displayName ?? user?.display_name ?? displayName;
   const username = user?.username ?? '';
   const pronouns = user?.pronouns ?? '';
-  const trustRank = user?.trustRankDisplayName ?? user?.trust_rank_display_name ?? '—';
+  const trustRank = user?.trustRankDisplayName ?? user?.trust_rank_display_name ?? '';
   const utags = (user?.tags || []).map((t) => String(t));
   const hasVrcPlus = user?.hasVrcPlus ?? user?.has_vrc_plus ?? utags.includes('system_supporter');
   const ageVerified = user?.ageVerified ?? user?.age_verified ?? utags.includes('system_verified');
@@ -119,12 +119,12 @@ export default function UserProfileModal({ displayName, onClose, inWorld = true 
               ) : (
                 <>
                   <h2 className="font-bold text-lg text-white truncate leading-tight">{name}</h2>
-                  <p className="text-sm text-surface-400">@{username || '—'}{pronouns ? ` · ${pronouns}` : ''}</p>
+                  <p className="text-sm text-surface-400">{username ? `@${username}` : ''}{pronouns ? ` · ${pronouns}` : ''}</p>
 
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <span className={`w-2 h-2 rounded-full ${statusDot}`} />
                     <span className="text-xs text-surface-300">{statusLabel}</span>
-                    {statusDesc && <span className="text-xs text-surface-500 truncate">— {statusDesc}</span>}
+                    {statusDesc && <span className="text-xs text-surface-500 truncate">· {statusDesc}</span>}
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mt-2">

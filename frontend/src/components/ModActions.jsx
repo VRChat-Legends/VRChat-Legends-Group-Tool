@@ -12,7 +12,7 @@ export default function ModActions({
   canUseLobbyActions = true,
   onRemoveFriend,
 }) {
-  const name = user?.displayName ?? user?.display_name ?? '—';
+  const name = user?.displayName ?? user?.display_name ?? 'Unknown';
   const { confirm } = useConfirm();
 
   return (

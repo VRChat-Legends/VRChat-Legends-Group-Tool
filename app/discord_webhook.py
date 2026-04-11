@@ -26,27 +26,92 @@ DISCORD_EMBED_TAGS = {
     "action": "joined or left",
     "action_title": "Joined or Left (capitalized)",
     "timestamp": "ISO timestamp",
+    "time": "Current time (HH:MM:SS)",
+    "time_12": "Current time (12h)",
+    "date": "Current date (YYYY-MM-DD)",
+    "date_long": "Current date (Month DD, YYYY)",
+    "day_of_week": "Day of week (Monday, etc.)",
+    "lobby_count": "Others in lobby",
+    "lobby_total": "Total in lobby",
+    "world_name": "Current world name",
+    "world_author": "World author",
+    "group_name": "Group name",
+    "group_member_count": "Group member count",
+    "friends_online": "Friends online count",
+    "mod_action": "Moderation action (kick/ban/remove/warn)",
+    "mod_action_title": "Action label (e.g. Banned from Group)",
+    "mod_reason": "Reason / warning message",
 }
 
 def _replace_tags(text, user_info, action):
     if not text or not isinstance(text, str):
         return text
+    from . import state
+    now = datetime.now()
     ts = datetime.utcnow().isoformat()
     action_title = action.capitalize() if action else ""
     repl = {
         "{display_name}": user_info.get("displayName", "Unknown"),
-        "{username}": user_info.get("username", "—"),
+        "{username}": user_info.get("username", ""),
         "{user_id}": user_info.get("id", "Unknown"),
         "{id}": user_info.get("id", "Unknown"),
-        "{trust_level}": user_info.get("trustLevel", "—"),
-        "{platform}": user_info.get("platform", "—"),
+        "{trust_level}": user_info.get("trustLevel", ""),
+        "{platform}": user_info.get("platform", ""),
         "{bio}": (user_info.get("bio") or "No bio")[:500],
         "{avatar_url}": user_info.get("avatarUrl", ""),
-        "{avatar_id}": user_info.get("avatarId", "—"),
+        "{avatar_id}": user_info.get("avatarId", ""),
         "{action}": action,
         "{action_title}": action_title,
+        "{mod_action}": user_info.get("_mod_action", action),
+        "{mod_action_title}": user_info.get("_mod_action_title", action_title),
+        "{mod_reason}": user_info.get("_mod_reason", ""),
         "{timestamp}": ts,
+        "{time}": now.strftime("%H:%M:%S"),
+        "{time_12}": now.strftime("%I:%M:%S %p"),
+        "{date}": now.strftime("%Y-%m-%d"),
+        "{date_long}": now.strftime("%B %d, %Y"),
+        "{day_of_week}": now.strftime("%A"),
     }
+
+    # Lobby info
+    try:
+        with state.state_lock:
+            repl["{lobby_count}"] = str(state.lobby_summary.get("others", 0))
+            repl["{lobby_total}"] = str(state.lobby_summary.get("total", 0))
+    except Exception:
+        repl["{lobby_count}"] = "0"
+        repl["{lobby_total}"] = "0"
+
+    # World info
+    try:
+        from .world_context import world_detail_from_location
+        client = getattr(state, "api_client", None)
+        loc = getattr(state.current_user, "location", "") if state.current_user else ""
+        wd = world_detail_from_location(client, loc) if client else None
+        repl["{world_name}"] = str(wd.get("name", "")) if wd else ""
+        repl["{world_author}"] = str(wd.get("author_name", "")) if wd else ""
+    except Exception:
+        repl["{world_name}"] = ""
+        repl["{world_author}"] = ""
+
+    # Group info
+    try:
+        from .group_cache import get_cached_group_data, get_cached_member_count
+        gd = get_cached_group_data() or {}
+        repl["{group_name}"] = str(gd.get("name") or "")
+        repl["{group_member_count}"] = str(get_cached_member_count())
+    except Exception:
+        repl["{group_name}"] = ""
+        repl["{group_member_count}"] = "0"
+
+    # Friends online
+    try:
+        from .friends_cache import get_cached_friends
+        friends_data = get_cached_friends()
+        repl["{friends_online}"] = str(sum(1 for f in friends_data if (f.get("status") or "offline") != "offline"))
+    except Exception:
+        repl["{friends_online}"] = "0"
+
     for tag, val in repl.items():
         text = text.replace(tag, str(val))
     return text
@@ -118,6 +183,22 @@ def get_discord_embed_templates():
     return join, leave
 
 
+def get_discord_mod_templates():
+    """Return saved moderation embed templates {action: embed_dict}."""
+    raw = get_setting("discord_mod_templates", "")
+    if raw:
+        try:
+            return json.loads(raw)
+        except (TypeError, ValueError):
+            pass
+    return {}
+
+
+def set_discord_mod_templates(templates):
+    """Save moderation embed templates dict."""
+    set_setting("discord_mod_templates", json.dumps(templates) if templates else "")
+
+
 def set_discord_embed_templates(embed_join=None, embed_leave=None):
     """Save embed templates (dicts → JSON strings)."""
     if embed_join is not None:
@@ -151,9 +232,9 @@ def get_discord_bot_token_raw():
     return decrypt_secret(enc) if enc else ""
 
 
-def get_openai_api_key():
-    """Get OpenAI API key (masked for display)."""
-    enc = get_setting("openai_api_key_enc", "")
+def get_gemini_api_key():
+    """Get Gemini API key (masked for display)."""
+    enc = get_setting("gemini_api_key_enc", "")
     if not enc:
         return ""
     raw = decrypt_secret(enc)
@@ -162,17 +243,17 @@ def get_openai_api_key():
     return raw[:7] + "..." + raw[-4:] if len(raw) > 11 else "***"
 
 
-def set_openai_api_key(key):
-    """Store OpenAI API key (encrypted)."""
+def set_gemini_api_key(key):
+    """Store Gemini API key (encrypted)."""
     if key:
-        set_setting("openai_api_key_enc", encrypt_secret(key.strip()))
+        set_setting("gemini_api_key_enc", encrypt_secret(key.strip()))
     else:
-        set_setting("openai_api_key_enc", "")
+        set_setting("gemini_api_key_enc", "")
 
 
-def get_openai_api_key_raw():
-    """Get raw OpenAI API key for API use."""
-    enc = get_setting("openai_api_key_enc", "")
+def get_gemini_api_key_raw():
+    """Get raw Gemini API key for API use."""
+    enc = get_setting("gemini_api_key_enc", "")
     return decrypt_secret(enc) if enc else ""
 
 
@@ -206,8 +287,9 @@ def get_discord_config():
             "embed_join": join,
             "embed_leave": leave,
             "embed_tags": DISCORD_EMBED_TAGS,
+            "mod_templates": get_discord_mod_templates(),
             "discord_bot_token_masked": get_discord_bot_token(),
-            "openai_api_key_masked": get_openai_api_key(),
+            "gemini_api_key_masked": get_gemini_api_key(),
             "discord_welcome_enabled": get_setting("discord_welcome_enabled", "0") == "1",
             "discord_welcome_channel_id": get_setting("discord_welcome_channel_id", ""),
             "discord_welcome_embed": _parse_welcome_embed(get_setting("discord_welcome_embed", "")),
@@ -294,17 +376,43 @@ def send_discord_moderation(action, user_id, display_name=None, message=None):
         return
     title, color = action_labels[action]
     try:
-        embed = {
-            "title": title,
-            "color": color,
-            "timestamp": datetime.utcnow().isoformat(),
-            "fields": [
-                {"name": "User ID", "value": user_id or "Unknown", "inline": True},
-                {"name": "Display Name", "value": (display_name or "Unknown")[:256], "inline": True},
-            ],
+        # Build a user_info dict so _replace_tags can resolve all standard tags
+        user_info = {
+            "displayName": display_name or "Unknown",
+            "username": "",
+            "id": user_id or "Unknown",
+            "trustLevel": "",
+            "platform": "",
+            "bio": "",
+            "avatarUrl": "",
+            "avatarId": "",
+            "_mod_action": action,
+            "_mod_action_title": title,
+            "_mod_reason": (message or "")[:1024],
         }
-        if message and action == "warn":
-            embed["fields"].append({"name": "Warning Message", "value": (message or "")[:1024], "inline": False})
+
+        # Check for saved custom template
+        mod_templates = get_discord_mod_templates()
+        custom_template = mod_templates.get(action)
+
+        if custom_template:
+            embed = _embed_from_template(custom_template, user_info, action)
+        else:
+            # Default hardcoded embed
+            embed = {
+                "title": title,
+                "color": color,
+                "timestamp": datetime.utcnow().isoformat(),
+                "fields": [
+                    {"name": "User ID", "value": user_id or "Unknown", "inline": True},
+                    {"name": "Display Name", "value": (display_name or "Unknown")[:256], "inline": True},
+                ],
+            }
+            if message and action == "warn":
+                embed["fields"].append({"name": "Warning Message", "value": (message or "")[:1024], "inline": False})
+
+        if not embed:
+            return
         payload = {"embeds": [embed]}
         webhook_url = discord_webhook_url
 

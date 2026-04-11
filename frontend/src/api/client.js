@@ -35,6 +35,7 @@ export const api = {
   addAuthEntry: (key, value) => api.post('/api/auth-entries', { key, value }),
   deleteAuthEntry: (key) => api.delete(`/api/auth-entries/${encodeURIComponent(key)}`),
   analytics: () => api.get('/api/analytics'),
+  analyticsHistory: () => api.get('/api/analytics/history'),
   chatbox: () => api.get('/api/chatbox'),
   saveChatbox: (data) => api.post('/api/chatbox', data),
   chatboxPreview: (lines, shrinkBackground = false) =>

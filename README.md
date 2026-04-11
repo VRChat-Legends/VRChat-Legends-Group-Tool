@@ -21,16 +21,22 @@
 ## Overview
 
 This repository contains the source for the **VRChat Legends Group Tool**.
-It combines a Python backend with a React/Vite frontend to provide a more polished desktop workflow for VRChat group operations.
+It combines a Python Flask backend with a React/Vite frontend wrapped in Electron to provide a polished desktop workflow for VRChat group operations.
 
 ### Included areas
 
-- Group and friend data helpers
-- Local dashboard and embedded web UI
-- Moderation and member-management utilities
-- Discord/webhook integration
-- Analytics, logging, caching, and backup helpers
+- **Dashboard** with real-time analytics, charts, and group stats
+- **Instances** viewer showing live open group lobbies
+- **Events** calendar for upcoming group events
+- **Members** browser with search, trust-level badges, and moderation actions (invite, remove, ban)
+- **Activity** log with lobby join/leave history
+- **Analytics** with daily/weekly/monthly charts (Recharts)
+- **Discord integration** with customizable embed builder for join/leave and moderation (kick, ban, remove, warn) webhooks, slash/prefix command editor, and server welcome messages
+- **AI assistant** powered by Google Gemini for group Q&A and member insights
+- **OSC chatbox** with 48+ dynamic tags (time, world, lobby, friends, group info, decorators) and live preview
+- Friend and group data caching with background refresh
 - Auto-update and installer support for packaged builds
+- Backup and restore for app data
 
 ---
 
@@ -66,18 +72,32 @@ It combines a Python backend with a React/Vite frontend to provide a more polish
 pip install -r requirements.txt
 ```
 
-**2) Build the frontend**
+**2) Install frontend and Electron dependencies**
 
 ```powershell
 cd frontend
 npm install
+cd ../electron
+npm install
+cd ..
+```
+
+**3) Build the frontend**
+
+```powershell
+cd frontend
 npm run build
 cd ..
 ```
 
-**3) Start the app**
+**4) Start the app**
 
 ```powershell
+# Option A: Run all three processes (Python backend, Vite dev server, Electron)
+cd electron
+npm start
+
+# Option B: Run Python backend only (dev/API mode)
 python vrchat_auto_accept.py
 ```
 
@@ -91,6 +111,7 @@ python vrchat_auto_accept.py
 | --- | --- |
 | `app/` | Python application logic, auth, updater, Discord, caching, analytics |
 | `frontend/` | React/Vite interface |
+| `electron/` | Electron main process, preload, and desktop shell |
 | `assets/` | Branding, icons, and bundled static resources |
 | `data/` | Local runtime data generated on the user's machine |
 
@@ -114,18 +135,18 @@ If you self-build from source, you are responsible for your environment, packagi
 
 - VRChat Legends team
 - Community testers and supporters
-- Open-source tools used by the project: Python, Flask, PyInstaller, React, Vite, and `vrchatapi`
+- Open-source tools used by the project: Python, Flask, Electron, React, Vite, Recharts, Tailwind CSS, and `vrchatapi`
 
 ---
 
 ## Antivirus / false positive notice
 
-Unsigned or newly compiled executables are often flagged by antivirus engines as a **false positive**, particularly when built with PyInstaller.
+Unsigned or newly compiled executables are often flagged by antivirus engines as a **false positive**.
 
 **Why this happens:**
 - The executable is unsigned (no code-signing certificate yet)
 - New binaries have no established reputation score
-- PyInstaller packaging patterns can trigger heuristic detections
+- Electron packaging patterns can trigger heuristic detections
 
 **What to do:**
 1. Download only from official VRChat Legends channels

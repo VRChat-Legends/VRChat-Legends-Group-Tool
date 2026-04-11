@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TitleBar from './TitleBar';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function Layout() {
   return (
@@ -17,8 +18,10 @@ export default function Layout() {
 
         {/* Scrollable content pane */}
         <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative z-[1]">
-          <div className="px-6 py-5 mx-auto" style={{ maxWidth: '1200px' }}>
-            <Outlet />
+          <div className="px-6 py-5 w-full min-h-full flex flex-col">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

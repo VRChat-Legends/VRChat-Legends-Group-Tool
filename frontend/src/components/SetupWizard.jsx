@@ -85,7 +85,7 @@ export default function SetupWizard({ dataDir, onComplete }) {
                 <code className="text-purple-300">data</code> folder in development:
               </p>
               <div className="rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-[0.7rem] leading-relaxed text-gray-400 break-all">
-                {dataDir || '—'}
+                {dataDir || ''}
               </div>
               <p className="text-xs text-gray-500">Back up this folder if you want to keep a copy of your data.</p>
             </div>

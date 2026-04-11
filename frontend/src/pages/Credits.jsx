@@ -34,13 +34,14 @@ const techStack = [
   { name: 'Vite',           icon: 'fas fa-bolt',        color: 'text-vrcl-purple', subtitle: 'Build tooling'      },
   { name: 'Tailwind CSS',   icon: 'fas fa-paint-roller',color: 'text-sky-400',     subtitle: 'Styling'            },
   { name: 'Electron',       icon: 'fas fa-atom',        color: 'text-blue-400',    subtitle: 'Desktop wrapper'    },
+  { name: 'Recharts',       icon: 'fas fa-chart-area',  color: 'text-pink-400',    subtitle: 'Charts & graphs'    },
   { name: 'VRChat API',     icon: 'fas fa-cube',        color: 'text-vrcl-pink',   subtitle: 'vrchatapi SDK'      },
-  { name: 'PyInstaller',    icon: 'fas fa-box',         color: 'text-orange-400',  subtitle: 'Packaging'          },
+  { name: 'FontAwesome',    icon: 'fas fa-icons',       color: 'text-indigo-400',  subtitle: 'Icon library'       },
 ];
 
 export default function Credits() {
   return (
-    <div className="space-y-8 animate-in max-w-4xl">
+    <div className="space-y-8 animate-in w-full">
 
       {/* Header */}
       <div>

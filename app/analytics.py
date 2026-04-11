@@ -6,6 +6,13 @@ from . import state
 from .config import DATA_DIR
 
 ANALYTICS_FILE = os.path.join(DATA_DIR, "analytics.json")
+HISTORY_FILE = os.path.join(DATA_DIR, "analytics_history.json")
+_HISTORY_METRICS = [
+    "invites_sent", "invites_failed", "invites_skipped_cooldown",
+    "friend_requests_accepted", "friend_requests_failed", "friend_requests_expired",
+    "rate_limit_events",
+]
+_MAX_HISTORY_POINTS = 168  # 7 days of hourly snapshots
 
 
 def _default_analytics():
@@ -79,3 +86,42 @@ def mark_last_invite_run():
 
 def mark_last_friend_poll():
     set_metric("last_friend_poll", datetime.utcnow().isoformat())
+
+
+# ── Hourly history for charts ────────────────────────────────────────────────
+
+def _load_history():
+    try:
+        if os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+
+def _save_history(history):
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f)
+    except Exception:
+        pass
+
+
+def record_hourly_snapshot():
+    """Take a snapshot of current metrics and append to history. Call once per hour."""
+    snap = snapshot_metrics()
+    point = {"ts": datetime.utcnow().isoformat()}
+    for k in _HISTORY_METRICS:
+        point[k] = snap.get(k, 0)
+    history = _load_history()
+    history.append(point)
+    if len(history) > _MAX_HISTORY_POINTS:
+        history = history[-_MAX_HISTORY_POINTS:]
+    _save_history(history)
+
+
+def get_history():
+    """Return the list of hourly snapshots for charting."""
+    return _load_history()

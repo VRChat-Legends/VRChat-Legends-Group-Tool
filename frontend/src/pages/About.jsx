@@ -11,7 +11,7 @@ const features = [
 
 export default function About() {
   return (
-    <div className="space-y-6 animate-in max-w-3xl">
+    <div className="space-y-6 animate-in w-full">
       {/* Hero */}
       <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-br from-vrcl-purple/10 via-transparent to-vrcl-pink/5 p-6 overflow-hidden relative">
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-vrcl-purple/10 blur-3xl pointer-events-none" />
@@ -28,7 +28,7 @@ export default function About() {
             </div>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
-            A desktop companion for the VRChat Legends community — lobby-aware group invites, friend management,
+            A desktop companion for the VRChat Legends community, lobby-aware group invites, friend management,
             moderation tools, OSC chatbox, and optional Discord &amp; AI integrations.
             Everything runs locally; your credentials and data stay on your machine.
           </p>
@@ -82,7 +82,7 @@ export default function About() {
       </div>
 
       <p className="text-[0.65rem] text-gray-700">
-        EcIipse Studios™ — not affiliated with VRChat Inc. Use responsibly and within VRChat ToS.
+        EcIipse Studios™. Not affiliated with VRChat Inc. Use responsibly and within VRChat ToS.
       </p>
     </div>
   );

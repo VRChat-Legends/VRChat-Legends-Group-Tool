@@ -27,18 +27,13 @@ state_lock = threading.Lock()
 lobby_users = []
 lobby_summary = {"total": 0, "others": 0}
 pending_friend_requests = 0
-auto_invite_enabled = True
-auto_accept_friend_enabled = True
+auto_invite_enabled = False
+auto_accept_friend_enabled = False
 auto_event_invite_enabled = False
 
 threads_started = False
 pending_2fa = None
 crash_recovered = False
-
-# When True, closing the pywebview window hides to tray instead of exiting
-tray_enabled = False
-# Main window visible (False when minimized to tray)
-ui_visible = True
 
 analytics_lock = threading.Lock()
 analytics = {

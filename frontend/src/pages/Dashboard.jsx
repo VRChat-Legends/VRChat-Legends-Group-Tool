@@ -117,7 +117,7 @@ export default function Dashboard() {
           }`}
         >
           <strong className={window_visible === false ? 'text-amber-200' : 'text-violet-400'}>
-            {window_visible === false ? 'Running in tray — ' : 'Tray mode — '}
+            {window_visible === false ? 'Running in tray: ' : 'Tray mode: '}
           </strong>
           The app keeps working when you close the window. Use the tray icon → Open VRChat Legends Group Tool to show it again. Hover the tray icon to see the full tooltip.
         </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
                     {(user?.status || user?.status_description) ? (
                       <>
                         <span className="font-medium text-surface-200">{user?.status}</span>
-                        {user?.status_description ? ` — ${user.status_description}` : ''}
+                        {user?.status_description ? ` · ${user.status_description}` : ''}
                       </>
                     ) : (
                       <span className="italic text-surface-500">No status message</span>
@@ -304,7 +304,7 @@ export default function Dashboard() {
               <div key={w.world_id || w.name} className="rounded-xl border border-surface-700/60 bg-surface-800/40 p-4 text-sm space-y-1.5">
                 <p className="font-semibold text-surface-100">{w.name || w.world_id || 'World'}</p>
                 <p className="text-surface-400">
-                  By <span className="text-surface-200">{w.author_name || '—'}</span>
+                  By <span className="text-surface-200">{w.author_name || 'Unknown'}</span>
                   {w.author_id ? <span className="font-mono text-xs text-surface-500 ml-1">({w.author_id})</span> : null}
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-surface-500">
@@ -326,13 +326,13 @@ export default function Dashboard() {
         <Card title="Quick stats" className="star-border lg:col-span-1">
           <ul className="space-y-2 text-sm">
             <li className="flex justify-between"><span className="text-surface-500">Bot uptime</span><span className="font-medium">{formatUptime(bot_uptime_seconds ?? 0)}</span></li>
-            <li className="flex justify-between"><span className="text-surface-500">Current world</span><span className="font-medium truncate max-w-[140px]" title={current_world}>{current_world || '—'}</span></li>
+            <li className="flex justify-between"><span className="text-surface-500">Current world</span><span className="font-medium truncate max-w-[140px]" title={current_world}>{current_world || 'N/A'}</span></li>
             <li className="flex justify-between"><span className="text-surface-500">Queue size</span><span className="font-medium">{queue_size ?? current_invite_batch?.length ?? 0}</span></li>
             <li className="flex justify-between"><span className="text-surface-500">Time until next switch</span><span className="font-medium"><CountUp value={time_until_next_switch ?? next_poll_remaining} duration={400} />s</span></li>
             <li className="flex justify-between"><span className="text-surface-500">Pending requests</span><span className="font-medium"><CountUp value={pending_friend_requests} duration={400} /></span></li>
             <li className="flex justify-between"><span className="text-surface-500">Lobby</span><span className="font-medium"><CountUp value={lobby?.total ?? 0} duration={400} /> (<CountUp value={lobby?.others ?? 0} duration={400} /> others)</span></li>
             <li className="flex justify-between"><span className="text-surface-500">VRChat</span><span className={lobby_status === 'not_running' ? 'text-red-400' : 'text-emerald-400'} title="API health">{lobby_status === 'not_running' ? 'Not running' : 'Running'}</span></li>
-            <li className="flex justify-between"><span className="text-surface-500">Group members</span><span className="font-medium">{group_member_count ?? '—'}</span></li>
+            <li className="flex justify-between"><span className="text-surface-500">Group members</span><span className="font-medium">{group_member_count ?? 0}</span></li>
             <li className="flex justify-between"><span className="text-surface-500">Invites sent (session)</span><span className="font-medium"><CountUp value={invites_sent ?? 0} duration={400} /></span></li>
             <li className="flex justify-between"><span className="text-surface-500">Invites failed (session)</span><span className="font-medium"><CountUp value={invites_failed ?? 0} duration={400} /></span></li>
             <li className="flex justify-between"><span className="text-surface-500">Friends accepted (session)</span><span className="font-medium"><CountUp value={friend_requests_accepted ?? 0} duration={400} /></span></li>
@@ -397,7 +397,7 @@ export default function Dashboard() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Chatbox preview" subtitle="What VRChat OSC receives (tags resolved live)" className="star-border" tooltip="Live preview of chatbox lines with tags resolved">
-          <pre className="text-xs text-surface-400 whitespace-pre-wrap font-mono max-h-24 overflow-y-auto rounded-lg bg-surface-800/50 p-2">{chatbox_preview || '—'}</pre>
+          <pre className="text-xs text-surface-400 whitespace-pre-wrap font-mono max-h-24 overflow-y-auto rounded-lg bg-surface-800/50 p-2">{chatbox_preview || ''}</pre>
         </Card>
         <Card title="Current lobby" subtitle="Double-click a name to open profile" className="star-border">
           <ul className="space-y-1.5 max-h-64 overflow-y-auto">

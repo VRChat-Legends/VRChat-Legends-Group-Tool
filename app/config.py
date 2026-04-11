@@ -4,7 +4,7 @@ import shutil
 
 # Configuration
 USER_AGENT = "VRChatAutoAccept/2.0 (contact: jp2014n@vrchatlegends.com)"  # *** CHANGE TO YOUR REAL EMAIL ***
-GROUP_ID = "grp_e80398ca-3725-4529-b104-9fe5ef71ab91"  # LEGEND.0850
+GROUP_ID = ""  # Set via Settings page
 
 POLL_INTERVAL_BASE = 20
 JITTER_RANGE = 8

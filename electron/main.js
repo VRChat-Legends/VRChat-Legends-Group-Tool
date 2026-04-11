@@ -2,7 +2,7 @@
  * VRChat Legends Group Tool – Electron main process
  *
  * This wrapper:
- *   1. Spawns the Python Flask backend (sets ELECTRON_MODE=1 to suppress pywebview)
+ *   1. Spawns the Python Flask backend
  *   2. Waits for the backend to be ready on port 5555
  *   3. Opens a frameless BrowserWindow showing http://127.0.0.1:5555
  *   4. Forwards IPC messages for native window controls (minimize/maximize/close)
@@ -21,6 +21,8 @@ const http = require('http');
 const { spawn } = require('child_process');
 
 const BACKEND_PORT = 5555;
+const VITE_PORT = 5173;
+const isDev = !app.isPackaged;
 let mainWindow = null;
 let pythonProcess = null;
 let tray = null;
@@ -41,17 +43,18 @@ if (!gotTheLock) {
 }
 
 // ─── Backend health-check ─────────────────────────────────────────────────────
-function waitForBackend(maxAttempts = 80, interval = 400) {
+function waitForServer(port, maxAttempts = 80, interval = 400) {
+  const host = port === VITE_PORT ? 'localhost' : '127.0.0.1';
   return new Promise((resolve, reject) => {
     let attempts = 0;
     const check = () => {
-      const req = http.get(`http://127.0.0.1:${BACKEND_PORT}`, (res) => {
+      const req = http.get(`http://${host}:${port}`, (res) => {
         res.resume();
         resolve();
       });
       req.on('error', () => {
         if (++attempts >= maxAttempts) {
-          reject(new Error('Python backend did not start within the timeout.'));
+          reject(new Error(`Server on port ${port} did not start within the timeout.`));
         } else {
           setTimeout(check, interval);
         }
@@ -64,7 +67,7 @@ function waitForBackend(maxAttempts = 80, interval = 400) {
 
 // ─── Python backend ───────────────────────────────────────────────────────────
 function startPythonBackend() {
-  const env = { ...process.env, ELECTRON_MODE: '1' };
+  const env = { ...process.env };
 
   if (app.isPackaged) {
     // Packaged: Python EXE bundled alongside Electron
@@ -108,11 +111,17 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      webviewTag: true,
     },
     show: false,
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${BACKEND_PORT}`);
+  mainWindow.loadURL(isDev ? `http://localhost:${VITE_PORT}` : `http://127.0.0.1:${BACKEND_PORT}`);
+
+  // Open DevTools in development
+  if (isDev) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 
   // Show the window immediately when ready (not hidden to tray)
   mainWindow.once('ready-to-show', () => {
@@ -197,8 +206,16 @@ app.whenReady().then(async () => {
   createTray();
 
   try {
-    await waitForBackend();
+    // Always wait for the Python backend (APIs)
+    await waitForServer(BACKEND_PORT);
     console.log('[electron] Backend is ready.');
+
+    // In dev mode, also wait for the Vite dev server
+    if (isDev) {
+      console.log('[electron] Waiting for Vite dev server...');
+      await waitForServer(VITE_PORT, 60, 500);
+      console.log('[electron] Vite dev server is ready.');
+    }
   } catch (err) {
     console.error('[electron]', err.message);
   }

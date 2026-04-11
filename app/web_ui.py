@@ -40,7 +40,7 @@ from .discord_webhook import (
     set_discord_enabled,
     set_discord_webhook,
     set_discord_bot_token,
-    set_openai_api_key,
+    set_gemini_api_key,
     set_discord_welcome,
     load_discord_config,
     send_discord_moderation,
@@ -449,8 +449,6 @@ def get_status_payload():
         "api_health": "ok" if state.api_client and state.current_user else "not_logged_in",
         "crash_recovered": getattr(state, "crash_recovered", False),
         "active_worlds": active_worlds,
-        "tray_minimize_available": getattr(state, "tray_enabled", False),
-        "window_visible": getattr(state, "ui_visible", True),
         "start_with_windows": windows_startup.get_start_with_windows(),
     }
 
@@ -461,161 +459,12 @@ def _serve_react_index():
     return None
 
 
-def _serve_node_required():
-    """When Node.js/React UI is not built, show this instead of legacy HTML UI."""
-    html = """
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VRChat Legends Group Tool - Node.js required</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .box { max-width: 480px; background: rgba(30,41,59,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; text-align: center; }
-    h1 { font-size: 1.25rem; margin: 0 0 16px; color: #f1f5f9; }
-    p { margin: 0 0 12px; color: #94a3b8; font-size: 0.95rem; line-height: 1.5; }
-    code { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.9rem; }
-    .steps { text-align: left; margin: 20px 0; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px; }
-    .steps p { margin: 8px 0; }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>React UI not built</h1>
-    <p>Node.js was not found or the frontend was not built. The legacy (non-Node) UI has been removed.</p>
-    <p>To use the app:</p>
-    <div class="steps">
-      <p>1. Install <a href="https://nodejs.org/" target="_blank" rel="noopener" style="color:#818cf8;">Node.js</a></p>
-      <p>2. In a terminal, run:</p>
-      <p><code>cd frontend</code></p>
-      <p><code>npm install</code></p>
-      <p><code>npm run build</code></p>
-      <p>3. Restart this app.</p>
-    </div>
-    <p><a href="/login" style="color:#818cf8;">Back to login</a></p>
-  </div>
-</body>
-</html>
-"""
-    from flask import Response
-    return Response(html, mimetype="text/html")
-
-
 @app.get("/")
 def index():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    return _serve_node_required()
-
-
-@app.get("/dashboard")
-def dashboard():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/activity")
-def activity():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/auth-store")
-def auth_store():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/analytics")
-def analytics():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/settings")
-def settings():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/chatbox")
-def chatbox():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/credits")
-def credits():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/group")
-def group():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/about")
-def about():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/docs")
-def docs_page():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/privacy")
-def privacy_page():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
-
-
-@app.get("/terms")
-def terms_page():
-    if USE_REACT_UI:
-        return _serve_react_index()
-    if not state.current_user:
-        return redirect(url_for("login"))
-    return _serve_node_required()
+    react = _serve_react_index()
+    if react:
+        return react
+    return redirect(url_for("login"))
 
 
 @app.get("/assets/<path:filename>")
@@ -747,10 +596,10 @@ def twofa_post():
 
 @app.get("/<path:path>")
 def spa_catchall(path):
-    if USE_REACT_UI and path != "login" and not path.startswith("api"):
-        return _serve_react_index()
     if path != "login" and not path.startswith("api"):
-        return _serve_node_required()
+        react = _serve_react_index()
+        if react:
+            return react
     from flask import abort
     abort(404)
 
@@ -1019,6 +868,14 @@ def api_analytics():
     return jsonify(snapshot_metrics())
 
 
+@app.get("/api/analytics/history")
+def api_analytics_history():
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    from .analytics import get_history
+    return jsonify(get_history())
+
+
 @app.post("/api/invite-all-friends")
 def api_invite_all_friends():
     if not state.current_user:
@@ -1175,19 +1032,30 @@ def _merge_group_member_row(members_by_uid, m, role_map):
 
 def _fetch_all_group_members(group_id, role_map, groups_api):
     """
-    Paginate group members (n<=100). Also fetch per role_id so large groups and
-    role-filtered views stay complete, then merge by user_id.
+    Paginate group members (n<=100). Unfiltered fetch first; only do per-role
+    fallback if unfiltered returns suspiciously few members. Respects 429.
     """
     members_by_uid = {}
     n = 100
 
     def fetch_pages(role_id=None):
         offset = 0
+        backoff = 3.0
         while True:
             kwargs = {"n": n, "offset": offset}
             if role_id:
                 kwargs["role_id"] = role_id
-            resp = groups_api.get_group_members(group_id, **kwargs)
+            try:
+                resp = groups_api.get_group_members(group_id, **kwargs)
+                backoff = 3.0  # reset on success
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "Too Many Requests" in err_str:
+                    log_and_print(f"Group members 429 – backing off {backoff:.0f}s", "warning")
+                    time.sleep(backoff)
+                    backoff = min(backoff * 2, 60)
+                    continue
+                raise
             if not resp:
                 break
             for m in resp:
@@ -1195,17 +1063,23 @@ def _fetch_all_group_members(group_id, role_map, groups_api):
             if len(resp) < n:
                 break
             offset += n
-            time.sleep(0.22)
+            time.sleep(1.5)
 
     try:
         fetch_pages(None)
     except Exception as e:
         log_and_print(f"Group members (unfiltered) error: {e}", "error")
-    for rid in list(role_map.keys()):
-        try:
-            fetch_pages(rid)
-        except Exception as e:
-            log_and_print(f"Group members role {rid} error: {e}", "debug")
+
+    # Only do per-role fetches as a fallback for small unfiltered results
+    # to avoid hammering the API with one request per role
+    if len(members_by_uid) < 5 and role_map:
+        for rid in list(role_map.keys()):
+            time.sleep(3.0)
+            try:
+                fetch_pages(rid)
+            except Exception as e:
+                log_and_print(f"Group members role {rid} error: {e}", "debug")
+
     return list(members_by_uid.values())
 
 
@@ -1213,10 +1087,25 @@ def _fetch_all_group_members(group_id, role_map, groups_api):
 _group_page_cache = {"data": None, "last_fetch": 0.0, "fetching": False}
 _GROUP_PAGE_CACHE_TTL = 300  # seconds before a background refresh is triggered
 
+# ─── In-memory caches for instances and events (5-minute refresh) ─────────────
+_instances_cache = {"data": None, "last_fetch": 0.0, "fetching": False}
+_events_cache    = {"data": None, "last_fetch": 0.0, "fetching": False}
+_COMMUNITY_CACHE_TTL = 300  # 5 minutes
+
 
 def _refresh_group_page_cache_bg(group_id):
     """Background thread: fetch full group data and populate _group_page_cache."""
     global _group_page_cache
+
+    def _dt(val):
+        """Safely convert datetime/None to ISO string."""
+        if val is None:
+            return ""
+        if hasattr(val, "isoformat"):
+            return val.isoformat()
+        s = str(val).strip()
+        return s if s and s != "None" else ""
+
     try:
         if not state.groups_api_instance:
             return
@@ -1227,6 +1116,19 @@ def _refresh_group_page_cache_bg(group_id):
             "short_code": getattr(group, "short_code", ""),
             "member_count": getattr(group, "member_count", 0),
             "description": getattr(group, "description", ""),
+            "discriminator": getattr(group, "discriminator", ""),
+            "icon_url": getattr(group, "icon_url", "") or getattr(group, "iconUrl", "") or "",
+            "banner_url": getattr(group, "banner_url", "") or getattr(group, "bannerUrl", "") or "",
+            "privacy": str(getattr(group, "privacy", "") or ""),
+            "rules": getattr(group, "rules", "") or "",
+            "owner_id": getattr(group, "owner_id", "") or getattr(group, "ownerId", "") or "",
+            "created_at": _dt(getattr(group, "created_at", None)),
+            "updated_at": _dt(getattr(group, "updated_at", None)),
+            "online_member_count": getattr(group, "online_member_count", None),
+            "member_count_synced_at": _dt(getattr(group, "member_count_synced_at", None)),
+            "tags": list(getattr(group, "tags", []) or []),
+            "links": list(getattr(group, "links", []) or []),
+            "languages": list(getattr(group, "languages", []) or []),
         }
         role_map = {}
         try:
@@ -1772,7 +1674,7 @@ def api_ai_config_post():
 
 @app.post("/api/ai-chat")
 def api_ai_chat():
-    """Simple AI chat using OpenAI (if key is set)."""
+    """Simple AI chat using Google Gemini (if key is set)."""
     if not state.current_user:
         return jsonify({"error": "not_authenticated"}), 401
     if get_setting("ai_desktop_enabled", "0") != "1":
@@ -1782,10 +1684,10 @@ def api_ai_chat():
     if not message:
         return jsonify({"error": "message_required"}), 400
     try:
-        from .discord_webhook import get_openai_api_key_raw
-        key = get_openai_api_key_raw()
+        from .discord_webhook import get_gemini_api_key_raw
+        key = get_gemini_api_key_raw()
         if not key:
-            return jsonify({"reply": "OpenAI API key not configured. Add it in AI settings."})
+            return jsonify({"reply": "Google Gemini API key not configured. Add it in AI settings."})
         daily_limit = int(get_setting("ai_daily_limit", "0") or 0)
         if daily_limit > 0:
             today = datetime.now().strftime("%Y-%m-%d")
@@ -1800,49 +1702,58 @@ def api_ai_chat():
         system_prompt = get_setting("ai_system_prompt", "")
         negative_prompt = get_setting("ai_negative_prompt", "")
         memory_limit = max(5, min(200, int(get_setting("ai_memory_limit", "50") or 50)))
-        messages = []
-        if system_prompt or negative_prompt:
-            parts = []
-            if system_prompt:
-                parts.append(system_prompt)
-            if negative_prompt:
-                parts.append("You must NOT do the following:\n" + negative_prompt)
-            messages.append({"role": "system", "content": "\n\n".join(parts)})
+
+        # Build system instruction
+        system_parts = []
+        if system_prompt:
+            system_parts.append(system_prompt)
+        if negative_prompt:
+            system_parts.append("You must NOT do the following:\n" + negative_prompt)
         try:
             ctx = _build_ai_lobby_context()
             if ctx:
-                block = "--- VRChat session context (lobby + world; use for factual answers) ---\n" + ctx
-                if messages and messages[0].get("role") == "system":
-                    messages[0]["content"] = messages[0]["content"] + "\n\n" + block
-                else:
-                    messages.insert(0, {"role": "system", "content": block})
+                system_parts.append("--- VRChat session context (lobby + world; use for factual answers) ---\n" + ctx)
         except Exception:
             pass
+        system_instruction = "\n\n".join(system_parts) if system_parts else None
+
+        # Build Gemini conversation contents
+        contents = []
         history = data.get("history") or []
         for h in history[-(memory_limit * 2):]:
             r = (h.get("role") or "user").lower()
             c = (h.get("content") or "").strip()
-            if r in ("user", "assistant") and c:
-                messages.append({"role": r, "content": c})
-        messages.append({"role": "user", "content": message})
-        body = json.dumps({
-            "model": "gpt-3.5-turbo",
-            "messages": messages,
-            "max_tokens": 500,
-        })
+            if r == "user" and c:
+                contents.append({"role": "user", "parts": [{"text": c}]})
+            elif r == "assistant" and c:
+                contents.append({"role": "model", "parts": [{"text": c}]})
+        contents.append({"role": "user", "parts": [{"text": message}]})
+
+        body_obj = {"contents": contents}
+        if system_instruction:
+            body_obj["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+        body_obj["generationConfig"] = {"maxOutputTokens": 1024}
+
+        body = json.dumps(body_obj)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
         req = urllib.request.Request(
-            "https://api.openai.com/v1/chat/completions",
+            url,
             data=body.encode("utf-8"),
-            headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
+            headers={"Content-Type": "application/json"},
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=30) as resp:
             out = json.loads(resp.read().decode())
-        reply = (out.get("choices") or [{}])[0].get("message", {}).get("content", "No response.")
-        usage = out.get("usage") or {}
-        prompt_tokens = usage.get("prompt_tokens", 0)
-        completion_tokens = usage.get("completion_tokens", 0)
-        total_tokens = usage.get("total_tokens", prompt_tokens + completion_tokens)
+        candidates = out.get("candidates") or []
+        reply = "No response."
+        if candidates:
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if parts:
+                reply = parts[0].get("text", "No response.")
+        usage = out.get("usageMetadata") or {}
+        prompt_tokens = usage.get("promptTokenCount", 0)
+        completion_tokens = usage.get("candidatesTokenCount", 0)
+        total_tokens = usage.get("totalTokenCount", prompt_tokens + completion_tokens)
         today = datetime.now().strftime("%Y-%m-%d")
         stored_date = get_setting("ai_daily_tokens_date", "")
         stored_total = int(get_setting("ai_daily_tokens", "0") or 0)
@@ -1881,7 +1792,7 @@ def api_discord_post():
     embed_join = data.get("embed_join")
     embed_leave = data.get("embed_leave")
     discord_bot_token = data.get("discord_bot_token")
-    openai_api_key = data.get("openai_api_key")
+    gemini_api_key = data.get("gemini_api_key")
     welcome_enabled = data.get("discord_welcome_enabled")
     welcome_channel_id = data.get("discord_welcome_channel_id")
     welcome_embed = data.get("discord_welcome_embed")
@@ -1896,14 +1807,19 @@ def api_discord_post():
         set_setting("discord_embed_leave", json.dumps(embed_leave) if embed_leave else "")
     if discord_bot_token is not None:
         set_discord_bot_token(discord_bot_token if isinstance(discord_bot_token, str) else "")
-    if openai_api_key is not None:
-        set_openai_api_key(openai_api_key if isinstance(openai_api_key, str) else "")
+    if gemini_api_key is not None:
+        set_gemini_api_key(gemini_api_key if isinstance(gemini_api_key, str) else "")
     if welcome_enabled is not None:
         set_discord_welcome(enabled=bool(welcome_enabled))
     if welcome_channel_id is not None:
         set_discord_welcome(channel_id=str(welcome_channel_id))
     if welcome_embed is not None:
         set_discord_welcome(embed_json=welcome_embed)
+
+    mod_templates = data.get("mod_templates")
+    if mod_templates is not None:
+        from .discord_webhook import set_discord_mod_templates
+        set_discord_mod_templates(mod_templates if isinstance(mod_templates, dict) else {})
 
     return jsonify(get_discord_config())
 
@@ -2340,9 +2256,18 @@ def api_group_announcement(group_id):
     if not state.current_user:
         return jsonify({"error": "not_authenticated"}), 401
     try:
-        ann = state.groups_api_instance.get_group_announcement(group_id)
+        anns = state.groups_api_instance.get_group_announcements(group_id)
+        # SDK returns a list; take the first/latest one
+        if not anns:
+            return jsonify({"announcement": None})
+        ann = anns[0] if isinstance(anns, (list, tuple)) else anns
         if not ann:
             return jsonify({"announcement": None})
+
+        def _dt(v):
+            if v is None: return ""
+            return v.isoformat() if hasattr(v, "isoformat") else str(v)
+
         return jsonify({
             "announcement": {
                 "id": getattr(ann, "id", ""),
@@ -2352,12 +2277,13 @@ def api_group_announcement(group_id):
                 "text": getattr(ann, "text", "") or "",
                 "imageId": getattr(ann, "image_id", "") or "",
                 "imageUrl": getattr(ann, "image_url", "") or "",
-                "created_at": str(getattr(ann, "created_at", "")),
-                "updated_at": str(getattr(ann, "updated_at", "")),
+                "created_at": _dt(getattr(ann, "created_at", None)),
+                "updated_at": _dt(getattr(ann, "updated_at", None)),
             }
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log_and_print(f"Group announcement error: {e}", "debug")
+        return jsonify({"announcement": None})
 
 
 @app.get("/api/group/<group_id>/bans")
@@ -2367,6 +2293,9 @@ def api_group_bans(group_id):
         return jsonify({"error": "not_authenticated"}), 401
     try:
         bans = state.groups_api_instance.get_group_bans(group_id, n=100, offset=0)
+        def _dt(v):
+            if v is None: return ""
+            return v.isoformat() if hasattr(v, "isoformat") else str(v)
         items = []
         for b in (bans or []):
             items.append({
@@ -2374,11 +2303,12 @@ def api_group_bans(group_id):
                 "groupId": getattr(b, "group_id", ""),
                 "bannedUserId": getattr(b, "user_id", "") or getattr(b, "banned_user_id", ""),
                 "bannedByUserId": getattr(b, "banned_by_user_id", "") or "",
-                "created_at": str(getattr(b, "created_at", "")),
+                "created_at": _dt(getattr(b, "created_at", None)),
             })
         return jsonify({"bans": items})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log_and_print(f"Group bans error: {e}", "debug")
+        return jsonify({"bans": []})
 
 
 @app.delete("/api/group/<group_id>/bans/<user_id>")
@@ -2400,6 +2330,9 @@ def api_group_posts(group_id):
         return jsonify({"error": "not_authenticated"}), 401
     try:
         posts = state.groups_api_instance.get_group_posts(group_id, n=20, offset=0)
+        def _dt(v):
+            if v is None: return ""
+            return v.isoformat() if hasattr(v, "isoformat") else str(v)
         items = []
         for p in (posts or []):
             items.append({
@@ -2410,12 +2343,126 @@ def api_group_posts(group_id):
                 "imageId": getattr(p, "image_id", "") or "",
                 "imageUrl": getattr(p, "image_url", "") or "",
                 "visibility": str(getattr(p, "visibility", "")),
-                "created_at": str(getattr(p, "created_at", "")),
-                "updated_at": str(getattr(p, "updated_at", "")),
+                "created_at": _dt(getattr(p, "created_at", None)),
+                "updated_at": _dt(getattr(p, "updated_at", None)),
             })
         return jsonify({"posts": items})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        log_and_print(f"Group posts error: {e}", "debug")
+        return jsonify({"posts": []})
+
+
+def _refresh_instances_cache_bg(group_id):
+    """Background thread: fetch group instances and store in _instances_cache."""
+    global _instances_cache
+    try:
+        raw = state.groups_api_instance.get_group_instances(group_id)
+        items = []
+        for inst in (raw or []):
+            # SDK wraps the instance inside a GroupInstance model that has an .instance field
+            i = getattr(inst, "instance", inst)
+            world = getattr(i, "world", None)
+            items.append({
+                "instanceId": getattr(i, "id", "") or getattr(inst, "instance_id", ""),
+                "location": getattr(i, "location", "") or "",
+                "worldId": getattr(i, "world_id", "") or "",
+                "worldName": getattr(world, "name", "") if world else "",
+                "worldImageUrl": getattr(world, "thumbnail_image_url", "") if world else "",
+                "type": str(getattr(i, "type", "")),
+                "n_users": getattr(i, "n_users", 0) or 0,
+                "capacity": getattr(i, "capacity", 0) or 0,
+                "ownerId": getattr(i, "owner_id", "") or "",
+            })
+        _instances_cache["data"] = {"instances": items}
+        _instances_cache["last_fetch"] = time.time()
+        log_and_print(f"Group instances cache refreshed: {len(items)} instances", "debug")
+    except Exception as e:
+        log_and_print(f"Group instances cache error: {e}", "debug")
+    finally:
+        _instances_cache["fetching"] = False
+
+
+def _refresh_events_cache_bg(group_id):
+    """Background thread: fetch group calendar events and store in _events_cache."""
+    global _events_cache
+    try:
+        from vrchatapi.api import calendar_api as cal_api_mod
+        cal_api = cal_api_mod.CalendarApi(state.api_client)
+        raw = cal_api.get_group_calendar_events(group_id)
+
+        def _dt(v):
+            if v is None: return ""
+            return v.isoformat() if hasattr(v, "isoformat") else str(v)
+
+        items = []
+        for ev in (raw or []):
+            items.append({
+                "id": getattr(ev, "id", "") or "",
+                "name": getattr(ev, "name", "") or getattr(ev, "title", "") or "",
+                "description": getattr(ev, "description", "") or "",
+                "imageUrl": getattr(ev, "image_url", "") or "",
+                "startDt": _dt(getattr(ev, "start_dt", None)),
+                "endDt": _dt(getattr(ev, "end_dt", None)),
+                "isAllDay": bool(getattr(ev, "is_all_day", False)),
+                "visibility": str(getattr(ev, "visibility", "")),
+                "status": str(getattr(ev, "status", "")),
+                "attendeeCount": getattr(ev, "rsvp_count", 0) or 0,
+            })
+        _events_cache["data"] = {"events": items}
+        _events_cache["last_fetch"] = time.time()
+        log_and_print(f"Group events cache refreshed: {len(items)} events", "debug")
+    except Exception as e:
+        log_and_print(f"Group events cache error: {e}", "debug")
+    finally:
+        _events_cache["fetching"] = False
+
+
+@app.get("/api/group-instances")
+def api_group_instances():
+    """Return open group instances (cached, refreshed every 5 min)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    group_id = get_setting("group_id", GROUP_ID)
+    if not group_id:
+        return jsonify({"instances": [], "loading": False})
+    if not state.groups_api_instance:
+        return jsonify({"instances": [], "loading": False})
+
+    now = time.time()
+    cache = _instances_cache
+    stale = cache["data"] is None or (now - cache["last_fetch"]) >= _COMMUNITY_CACHE_TTL
+
+    if stale and not cache["fetching"]:
+        cache["fetching"] = True
+        threading.Thread(target=_refresh_instances_cache_bg, args=(group_id,), daemon=True).start()
+
+    if cache["data"]:
+        return jsonify({**cache["data"], "loading": cache["fetching"]})
+    return jsonify({"instances": [], "loading": True})
+
+
+@app.get("/api/group-events")
+def api_group_events():
+    """Return group calendar events (cached, refreshed every 5 min)."""
+    if not state.current_user:
+        return jsonify({"error": "not_authenticated"}), 401
+    group_id = get_setting("group_id", GROUP_ID)
+    if not group_id:
+        return jsonify({"events": [], "loading": False})
+    if not state.api_client:
+        return jsonify({"events": [], "loading": False})
+
+    now = time.time()
+    cache = _events_cache
+    stale = cache["data"] is None or (now - cache["last_fetch"]) >= _COMMUNITY_CACHE_TTL
+
+    if stale and not cache["fetching"]:
+        cache["fetching"] = True
+        threading.Thread(target=_refresh_events_cache_bg, args=(group_id,), daemon=True).start()
+
+    if cache["data"]:
+        return jsonify({**cache["data"], "loading": cache["fetching"]})
+    return jsonify({"events": [], "loading": True})
 
 
 @app.get("/api/search/users")
@@ -2672,6 +2719,17 @@ def handle_error(e):
 """, 500
 
 
+def _analytics_history_loop():
+    """Record hourly analytics snapshots for charting."""
+    from .analytics import record_hourly_snapshot
+    while True:
+        try:
+            record_hourly_snapshot()
+        except Exception:
+            pass
+        time.sleep(3600)
+
+
 def start_background_tasks():
     """Start lobby scan and friend-request polling threads (after login)."""
     if state.threads_started:
@@ -2679,79 +2737,13 @@ def start_background_tasks():
     state.threads_started = True
     threading.Thread(target=update_lobby_count, daemon=True).start()
     threading.Thread(target=poll_friend_requests, daemon=True).start()
+    threading.Thread(target=_analytics_history_loop, daemon=True).start()
     log_and_print("Background tasks started (lobby scan, friend requests)", "info")
 
 
 def start_web_ui():
-    """Start Flask and open embedded app window (no browser/port config needed)."""
+    """Start Flask API server. Electron provides the window shell."""
     load_discord_config()
     port = 5555
-    url = f"http://127.0.0.1:{port}"
-
-    # When launched from Electron, skip pywebview – Electron provides the window.
-    if os.environ.get("ELECTRON_MODE") == "1":
-        log_and_print("ELECTRON_MODE=1: running Flask only, skipping pywebview", "info")
-        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False, threaded=True)
-        return
-
-    try:
-        import webview
-        from . import tray_helper
-
-        def run_flask():
-            app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False, threaded=True)
-
-        server_thread = threading.Thread(target=run_flask, daemon=True)
-        server_thread.start()
-        for _ in range(30):
-            try:
-                urllib.request.urlopen(url, timeout=1)
-                break
-            except Exception:
-                time.sleep(0.2)
-        else:
-            time.sleep(1)
-
-        window = webview.create_window(
-            "VRChat Legends Group Tool",
-            url,
-            width=1280,
-            height=800,
-            min_size=(800, 600),
-        )
-
-        def get_window():
-            try:
-                wins = webview.windows
-                return wins[0] if wins else None
-            except Exception:
-                return None
-
-        def _on_closing(*_args, **_kwargs):
-            if not state.tray_enabled:
-                return True
-            try:
-                window.hide()
-                state.ui_visible = False
-                return False
-            except Exception:
-                return True
-
-        def _tray_on_show():
-            state.ui_visible = True
-
-        if tray_helper.start_tray(get_window, on_show=_tray_on_show):
-            try:
-                window.events.closing += _on_closing
-                state.tray_enabled = True
-            except Exception:
-                state.tray_enabled = False
-
-        webview.start()
-    except ImportError:
-        import webbrowser
-        def open_browser():
-            time.sleep(1.5)
-            webbrowser.open(url)
-        threading.Thread(target=open_browser, daemon=True).start()
-        app.run(host="127.0.0.1", port=port, debug=False, threaded=True)
+    log_and_print("Starting Flask API server on port 5555", "info")
+    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False, threaded=True)

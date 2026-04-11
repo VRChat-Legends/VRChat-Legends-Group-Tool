@@ -6,11 +6,19 @@ import ClickSpark from '../components/ClickSpark';
 import { Icons } from '../components/Icons';
 
 const TAGS = [
-  { tag: '{time}', desc: '24h time' },
-  { tag: '{time_12}', desc: '12h time' },
-  { tag: '{date}', desc: 'Date' },
+  { tag: '{time}', desc: '24h time (HH:MM:SS)' },
+  { tag: '{time_12}', desc: '12h time (hh:mm:ss AM/PM)' },
+  { tag: '{time_short}', desc: '24h time (HH:MM)' },
+  { tag: '{time_12_short}', desc: '12h time (hh:mm AM/PM)' },
+  { tag: '{date}', desc: 'Date (YYYY-MM-DD)' },
+  { tag: '{date_short}', desc: 'Date (MM/DD)' },
+  { tag: '{date_long}', desc: 'Date (Month DD, YYYY)' },
+  { tag: '{day_of_week}', desc: 'Day name (Monday, etc.)' },
+  { tag: '{day_short}', desc: 'Day short (Mon, etc.)' },
+  { tag: '{month}', desc: 'Month name (January, etc.)' },
+  { tag: '{year}', desc: 'Current year' },
+  { tag: '{display_name}', desc: 'Your display name' },
   { tag: '{username}', desc: 'Display name (legacy key)' },
-  { tag: '{display_name}', desc: 'Display name' },
   { tag: '{trust_rank}', desc: 'Your trust rank label' },
   { tag: '{user_status}', desc: 'Your status (active, busy, …)' },
   { tag: '{status_description}', desc: 'Your status message' },
@@ -28,11 +36,22 @@ const TAGS = [
   { tag: '{world_heat}', desc: 'World heat' },
   { tag: '{world_release}', desc: 'Release status' },
   { tag: '{world_description}', desc: 'Description (short)' },
+  { tag: '{group_name}', desc: 'Your group name' },
+  { tag: '{group_short_code}', desc: 'Group short code' },
   { tag: '{group_member_count}', desc: 'Group members' },
+  { tag: '{friends_online}', desc: 'Friends currently online' },
+  { tag: '{friends_total}', desc: 'Total friends count' },
   { tag: '{pending_friend_requests}', desc: 'Pending incoming friend count' },
-  { tag: '{active_time}', desc: 'Bot uptime (e.g. 2h 15m)' },
+  { tag: '{active_time}', desc: 'Bot uptime (e.g. 2h 15m 30s)' },
+  { tag: '{uptime_short}', desc: 'Uptime short (e.g. 2h 15m)' },
+  { tag: '{random_emoji}', desc: 'Random emoji each cycle' },
   { tag: '{divider}', desc: 'Short rule (14 chars)' },
   { tag: '{line}', desc: 'Long rule (30 chars)' },
+  { tag: '{dots}', desc: 'Dot divider (14 dots)' },
+  { tag: '{stars}', desc: 'Star divider (7 stars)' },
+  { tag: '{hearts}', desc: 'Heart divider (7 hearts)' },
+  { tag: '{space}', desc: 'Single space' },
+  { tag: '{blank}', desc: 'Empty (remove tag)' },
   { tag: '{newline}', desc: 'Newline' },
 ];
 
@@ -86,7 +105,7 @@ export default function Chatbox() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in w-full">
       <Card title="VRChat OSC Chatbox" subtitle="Runs in background without opening keyboard" className="star-border" titleIcon={<Icons.Chatbox />}>
         <div className="space-y-3">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -99,7 +118,7 @@ export default function Chatbox() {
           </label>
         </div>
       </Card>
-      <Card title="Chatbox builder" subtitle="Reorder with ↑↓ — lines and tags (saved on restart)" className="star-border" titleIcon={<Icons.Log />}>
+      <Card title="Chatbox builder" subtitle="Reorder with ↑↓, lines and tags (saved on restart)" className="star-border" titleIcon={<Icons.Log />}>
         <div className="space-y-2">
           {lines.map((line, i) => (
             <div key={i} className="flex gap-2 items-center">

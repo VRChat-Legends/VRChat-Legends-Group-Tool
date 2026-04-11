@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Privacy() {
   return (
-    <div className="max-w-3xl mx-auto animate-in py-2">
+    <div className="animate-in w-full py-2">
       <h1 className="text-2xl font-bold text-surface-100 mb-2">Privacy Policy</h1>
       <p className="text-surface-500 text-sm mb-8">VRChat Legends Group Tool (local application)</p>
 
@@ -26,17 +26,17 @@ export default function Privacy() {
           <h2 className="text-lg font-semibold text-surface-100 mb-2">Third parties you may use</h2>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong className="text-surface-200">VRChat</strong> — When you log in, the app uses VRChat&apos;s official APIs as you direct it (invites, friends, profile, etc.), subject to{' '}
+              <strong className="text-surface-200">VRChat</strong>: When you log in, the app uses VRChat&apos;s official APIs as you direct it (invites, friends, profile, etc.), subject to{' '}
               <a href="https://hello.vrchat.com/legal" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
                 VRChat&apos;s policies
               </a>
               .
             </li>
             <li>
-              <strong className="text-surface-200">Discord</strong> — If you configure a webhook, messages you choose to send go to Discord under your control.
+              <strong className="text-surface-200">Discord</strong>: If you configure a webhook, messages you choose to send go to Discord under your control.
             </li>
             <li>
-              <strong className="text-surface-200">OpenAI</strong> — If you enable the AI assistant and provide an API key, prompts you send are processed by OpenAI per your account and their terms.
+              <strong className="text-surface-200">OpenAI</strong>: If you enable the AI assistant and provide an API key, prompts you send are processed by OpenAI per your account and their terms.
             </li>
           </ul>
         </section>

@@ -84,8 +84,8 @@ export default function Discord() {
   }, []);
 
   return (
-    <div className="space-y-6 animate-in">
-      <Card title="Discord Commands" subtitle="Prefix (!cmd) and slash (/cmd) commands — requires Discord bot" className="star-border bento-cell-wide" titleIcon={<Icons.Globe />}>
+    <div className="space-y-6 animate-in w-full">
+      <Card title="Discord Commands" subtitle="Prefix (!cmd) and slash (/cmd) commands, requires Discord bot" className="star-border bento-cell-wide" titleIcon={<Icons.Globe />}>
         <CommandsEditor />
       </Card>
 
@@ -222,6 +222,41 @@ export default function Discord() {
             className="mt-4 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium flex items-center gap-2"
           >
             <Icons.Save /> Save Welcome
+          </button>
+        </ClickSpark>
+      </Card>
+
+      <Card title="Moderation Webhooks" subtitle="Customize embeds for kick, ban, remove, and warn actions" className="star-border bento-cell-wide" titleIcon={<Icons.Globe />}>
+        <p className="text-xs text-surface-500 mb-3">
+          Build custom embeds for each moderation action. Extra tags: {'{mod_action}'}, {'{mod_action_title}'}, {'{mod_reason}'}. Leave empty to use the default embed.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {['kick', 'ban', 'remove', 'warn'].map((act) => (
+            <DiscordEmbedBuilder
+              key={act}
+              title={`${act.charAt(0).toUpperCase() + act.slice(1)} embed`}
+              template={(discordConfig?.mod_templates || {})[act] || null}
+              embedTags={discordConfig?.embed_tags || {}}
+              onChange={(embed) =>
+                setDiscordConfig((c) => ({
+                  ...c,
+                  mod_templates: { ...(c?.mod_templates || {}), [act]: embed },
+                }))
+              }
+            />
+          ))}
+        </div>
+        <ClickSpark>
+          <button
+            onClick={() =>
+              api.saveDiscord({ mod_templates: discordConfig?.mod_templates || {} }).then(() => {
+                toast('Mod embeds saved', 'success');
+                api.discord().then(setDiscordConfig);
+              })
+            }
+            className="mt-4 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium flex items-center gap-2"
+          >
+            <Icons.Save /> Save Mod Embeds
           </button>
         </ClickSpark>
       </Card>

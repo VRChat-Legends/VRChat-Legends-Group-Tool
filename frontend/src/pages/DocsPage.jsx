@@ -106,7 +106,7 @@ export default function DocsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-7xl animate-in px-4 py-8 md:py-12 lg:px-8">
+    <div className="animate-in w-full">
       <div className="mb-10 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-vrcl-purple/20 via-vrcl-dark to-vrcl-pink/15 p-6 shadow-lg shadow-vrcl-purple/10 md:p-8">
         <div className="flex flex-wrap items-center gap-4">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-vrcl-purple to-vrcl-pink text-lg text-white shadow-lg shadow-vrcl-purple/30">
@@ -117,7 +117,7 @@ export default function DocsPage() {
               Group Tool Docs
             </h1>
             <p className="text-sm text-gray-400">
-              Handbook for the VRChat Legends Group Tool — invites, friends, lobby tools, and integrations.
+              Handbook for the VRChat Legends Group Tool: invites, friends, lobby tools, and integrations.
             </p>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function DocsPage() {
             >
               {CHAPTERS.map((ch) => (
                 <option key={ch.id} value={ch.id}>
-                  {ch.num} — {ch.title}
+                  {ch.num}: {ch.title}
                 </option>
               ))}
             </select>
@@ -229,19 +229,19 @@ export default function DocsPage() {
             </SectionTitle>
             <ul className="list-disc space-y-2 pl-5 text-sm text-gray-300">
               <li>
-                <strong className="text-white">VRChat API</strong> — Master switch; when off, no VRChat API calls are made.
+                <strong className="text-white">VRChat API</strong>: Master switch; when off, no VRChat API calls are made.
               </li>
               <li>
-                <strong className="text-white">Group ID</strong> — Target group for invites.
+                <strong className="text-white">Group ID</strong>: Target group for invites.
               </li>
               <li>
-                <strong className="text-white">Event ID</strong> — Optional calendar event for lobby event invites.
+                <strong className="text-white">Event ID</strong>: Optional calendar event for lobby event invites.
               </li>
               <li>
-                <strong className="text-white">OSC / maintenance / account</strong> — Chatbox endpoint, log clears, emergency stop, logout.
+                <strong className="text-white">OSC / maintenance / account</strong>: Chatbox endpoint, log clears, emergency stop, logout.
               </li>
               <li>
-                <strong className="text-white">Uninstall</strong> — Opens the Windows uninstaller (installed build) or erases local data only; see in-app labels.
+                <strong className="text-white">Uninstall</strong>: Opens the Windows uninstaller (installed build) or erases local data only; see in-app labels.
               </li>
             </ul>
           </section>
@@ -351,7 +351,7 @@ export default function DocsPage() {
               License
             </SectionTitle>
             <p className="text-sm leading-relaxed text-gray-300">
-              Provided under the <strong className="text-white">MIT License</strong> unless otherwise noted in the repository. App Terms and Privacy:{' '}
+              Provided under the <strong className="text-white">GNU General Public License v3.0</strong> unless otherwise noted in the repository. App Terms and Privacy:{' '}
               <Link to="/terms" className="text-vrcl-purple-light hover:underline">
                 Terms
               </Link>{' '}

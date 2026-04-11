@@ -24,7 +24,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in w-full">
       <div className="bento-grid">
         <Card title="VRChat API" subtitle="When off, the app will not make any VRChat API calls until turned back on" className="star-border bento-cell-1" titleIcon={<Icons.Globe />}>
           <div className="flex flex-wrap items-center gap-3">

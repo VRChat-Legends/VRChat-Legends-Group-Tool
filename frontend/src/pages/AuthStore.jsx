@@ -30,7 +30,7 @@ export default function AuthStore() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in w-full">
       <Card title="Auth Store" subtitle="Stored auth entries (view only, delete if needed)" className="star-border" titleIcon={<Icons.Auth />}>
       <ul className="space-y-3">
         {entries.map((e) => (

@@ -45,7 +45,7 @@ export default function Activity() {
   }, [logs, filter, search]);
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in w-full">
       <Card title="Activity log" subtitle="Live updates every 2s" className="star-border" titleIcon={<Icons.Log />}>
         <div className="flex flex-wrap gap-2 mb-4">
           <input

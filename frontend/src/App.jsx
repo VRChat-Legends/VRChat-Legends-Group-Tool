@@ -5,7 +5,8 @@ import { ConfirmProvider } from './components/ConfirmModal'
 import Layout from './components/Layout'
 import SplashGate from './components/SplashGate'
 import Dashboard from './pages/Dashboard'
-import People from './pages/People'
+import Instances from './pages/Instances'
+import Events from './pages/Events'
 import Moderation from './pages/Moderation'
 import Integrations from './pages/Integrations'
 import Info from './pages/Info'
@@ -69,9 +70,12 @@ export default function App() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="people" element={<People />} />
-          <Route path="members" element={<Navigate to="/people" replace />} />
-          <Route path="group" element={<Navigate to="/people" replace />} />
+          <Route path="group" element={<Navigate to="/dashboard" replace />} />
+          <Route path="people" element={<Navigate to="/dashboard" replace />} />
+          <Route path="members" element={<Navigate to="/dashboard" replace />} />
+          <Route path="instances" element={<Instances />} />
+          <Route path="events" element={<Events />} />
+          <Route path="website" element={<Navigate to="/dashboard" replace />} />
           <Route path="moderation" element={<Moderation />} />
           <Route path="activity" element={<Navigate to="/moderation?tab=activity" replace />} />
           <Route path="analytics" element={<Navigate to="/moderation?tab=analytics" replace />} />

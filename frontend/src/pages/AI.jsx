@@ -10,14 +10,14 @@ export default function AI() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [localOpenAIKey, setLocalOpenAIKey] = useState('');
+  const [localGeminiKey, setLocalGeminiKey] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const toast = useToast();
 
   useEffect(() => {
     Promise.all([api.get('/api/ai-config'), api.discord()]).then(([cfg, discord]) => {
-      setConfig({ ...(cfg || {}), openai_key_masked: discord?.openai_api_key_masked });
+      setConfig({ ...(cfg || {}), gemini_key_masked: discord?.gemini_api_key_masked });
       setSystemPrompt((cfg && cfg.system_prompt) || '');
       setNegativePrompt((cfg && cfg.negative_prompt) || '');
     }).catch(() => setConfig({
@@ -45,14 +45,14 @@ export default function AI() {
   }
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in w-full">
       <Card title="AI Assistant" subtitle="Unified AI for Desktop and Discord" className="star-border bento-cell-wide" titleIcon={<Icons.Chatbox />}>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-surface-500 mb-1">OpenAI API Key (required for chat)</label>
+            <label className="block text-xs text-surface-500 mb-1">Google Gemini API Key (required for chat)</label>
             <div className="flex gap-2">
-              <input type="password" value={localOpenAIKey} onChange={(e) => setLocalOpenAIKey(e.target.value)} placeholder={config?.openai_key_masked ? '•••••••• (enter new to replace)' : 'sk-...'} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 border border-surface-700 text-surface-100 font-mono" />
-              <ClickSpark><button onClick={() => { if (!localOpenAIKey) return; api.saveDiscord({ openai_api_key: localOpenAIKey }).then(() => { setLocalOpenAIKey(''); api.get('/api/ai-config').then(() => {}); api.discord().then((d) => setConfig((c) => ({ ...c, openai_key_masked: d?.openai_api_key_masked }))); toast('OpenAI API key saved', 'success'); }); }} className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium">Save</button></ClickSpark>
+              <input type="password" value={localGeminiKey} onChange={(e) => setLocalGeminiKey(e.target.value)} placeholder={config?.gemini_key_masked ? '•••••••• (enter new to replace)' : 'AIza...'} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 border border-surface-700 text-surface-100 font-mono" />
+              <ClickSpark><button onClick={() => { if (!localGeminiKey) return; api.saveDiscord({ gemini_api_key: localGeminiKey }).then(() => { setLocalGeminiKey(''); api.get('/api/ai-config').then(() => {}); api.discord().then((d) => setConfig((c) => ({ ...c, gemini_key_masked: d?.gemini_api_key_masked }))); toast('Gemini API key saved', 'success'); }); }} className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium">Save</button></ClickSpark>
             </div>
           </div>
           <div>
@@ -135,19 +135,40 @@ export default function AI() {
       </Card>
 
       {config.desktop_enabled && (
-        <Card title="Chat" subtitle="AI Assistant (requires OpenAI API key above)" className="star-border bento-cell-wide">
+        <Card title="Chat" subtitle="AI Assistant (powered by Google Gemini)" className="star-border bento-cell-wide">
           <div className="flex flex-col gap-4">
-            <div className="h-64 overflow-y-auto rounded-xl bg-surface-800/50 border border-surface-700 p-4 space-y-2">
+            {/* Chat header with clear */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-surface-500"><i className="fas fa-microchip mr-1" />Gemini 2.0 Flash</span>
+                <span className="text-xs text-surface-500">{messages.length} messages</span>
+              </div>
+              {messages.length > 0 && (
+                <button type="button" onClick={() => setMessages([])} className="text-xs text-surface-500 hover:text-red-400 transition-colors">
+                  <i className="fas fa-trash mr-1" />Clear chat
+                </button>
+              )}
+            </div>
+            <div className="h-80 overflow-y-auto rounded-xl bg-surface-800/50 border border-surface-700 p-4 space-y-2">
               {messages.length === 0 && (
-                <p className="text-surface-500 text-sm">Send a message to start. OpenAI API key must be set above.</p>
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+                  <i className="fas fa-robot text-3xl text-surface-600" />
+                  <p className="text-surface-500 text-sm">Send a message to start chatting with Gemini.</p>
+                  <p className="text-surface-600 text-xs">Gemini API key must be set above.</p>
+                </div>
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${m.role === 'user' ? 'bg-brand-500/30 text-surface-100' : 'bg-surface-700 text-surface-200'}`}>
+                  <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-brand-500/30 text-surface-100' : 'bg-surface-700 text-surface-200'}`}>
                     {m.content}
                   </div>
                 </div>
               ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="px-3 py-2 rounded-lg bg-surface-700 text-surface-400 text-sm animate-pulse">Thinking…</div>
+                </div>
+              )}
             </div>
             <form
               onSubmit={(e) => {
@@ -177,14 +198,36 @@ export default function AI() {
                 className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 border border-surface-700 text-surface-100"
               />
               <ClickSpark>
-                <button type="submit" disabled={loading} className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium">
-                  Send
+                <button type="submit" disabled={loading} className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium disabled:opacity-50">
+                  {loading ? <i className="fas fa-spinner fa-spin" /> : 'Send'}
                 </button>
               </ClickSpark>
             </form>
           </div>
         </Card>
       )}
+
+      {/* AI Context Info */}
+      <Card title="AI Context" subtitle="What the AI knows about during conversations" titleIcon={<i className="fas fa-brain text-brand-400 w-5 text-center" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-surface-800/50 border border-surface-700/40">
+            <p className="text-xs text-surface-500 mb-1"><i className="fas fa-users mr-1" />Lobby context</p>
+            <p className="text-sm text-surface-300">Sees who is in your VRChat lobby (names, count) when responding.</p>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-800/50 border border-surface-700/40">
+            <p className="text-xs text-surface-500 mb-1"><i className="fas fa-globe mr-1" />World context</p>
+            <p className="text-sm text-surface-300">Knows the current world name, author, description, and capacity.</p>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-800/50 border border-surface-700/40">
+            <p className="text-xs text-surface-500 mb-1"><i className="fas fa-clock-rotate-left mr-1" />Conversation history</p>
+            <p className="text-sm text-surface-300">Remembers up to {config.memory_limit ?? 50} messages per conversation session.</p>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-800/50 border border-surface-700/40">
+            <p className="text-xs text-surface-500 mb-1"><i className="fas fa-shield-halved mr-1" />Prompt control</p>
+            <p className="text-sm text-surface-300">System + negative prompts guide behavior. Negative prompt sets hard limits.</p>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
